@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<pl.modrakowski.android.UserViewWrapper xmlns:android="http://schemas.android.com/apk/res/android"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="match_parent">
+
+    <pl.modrakowski.android.UserBackgroundView
+            android:id="@+id/user_background_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:tag="@string/background_view_tag">
+
+        <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:textColor="@android:color/white"
+                android:textSize="24dip"
+                android:gravity="center"
+                android:layout_gravity="left"
+                android:text="BACKGROUND"
+                android:background="#FF3354"/>
+
+        <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="BUTTON_2"
+                android:layout_gravity="center_vertical|right"
+
+                android:visibility="visible"/>
+
+        <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="BUTTON_1"
+                android:layout_gravity="center_vertical|left"
+
+                android:visibility="visible"/>
+
+    </pl.modrakowski.android.UserBackgroundView>
+
+    <pl.modrakowski.android.UserForegroundView
+            android:id="@+id/user_profile_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:tag="@string/foreground_view_tag">
+
+        <TextView
+                android:id="@+id/name"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:textColor="@android:color/white"
+                android:textSize="24dip"
+                android:gravity="center"
+                android:layout_gravity="center"/>
+
+    </pl.modrakowski.android.UserForegroundView>
+
+
+</pl.modrakowski.android.UserViewWrapper>

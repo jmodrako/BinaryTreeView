@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">VemmaBrowseTest</string>
+    <string name="foreground_view_tag">foreground_tag</string>
+    <string name="background_view_tag">background_tag</string>
+
+</resources>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <integer name="swipe_in_out_duration_ms">260</integer>
+    <integer name="open_threshold_px">200</integer>
+    <integer name="close_threshold_px">200</integer>
+</resources>
