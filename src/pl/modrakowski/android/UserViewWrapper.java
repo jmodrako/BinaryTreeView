@@ -423,13 +423,13 @@ public class UserViewWrapper extends FrameLayout {
             public boolean onPreDraw() {
                 switch (getId()) {
                     case R.id.parent:
-                        userForegroundView.setBackgroundColor(getResources().getColor(android.R.color.holo_blue_dark));
+                       // userForegroundView.setBackgroundColor(getResources().getColor(android.R.color.holo_blue_dark));
                         wrapperUserType = WrapperUserType.PARENT;
                         break;
                     case R.id.left_child:
                     case R.id.right_child:
                         wrapperUserType = WrapperUserType.CHILD;
-                        userForegroundView.setBackgroundColor(getResources().getColor(android.R.color.holo_blue_light));
+                        //userForegroundView.setBackgroundColor(getResources().getColor(android.R.color.holo_blue_light));
                         break;
                 }
                 return true;

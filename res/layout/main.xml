@@ -4,37 +4,109 @@
               android:layout_width="fill_parent"
               android:layout_height="fill_parent"
               android:weightSum="4"
-              android:padding="16dip">
+              android:paddingLeft="16dip"
+              android:paddingRight="16dip"
+              android:paddingTop="16dip"
+              android:background="@color/google_now_background">
 
-    <include
-            layout="@layout/user_view"
-
+    <!-- Parent view. -->
+    <pl.modrakowski.android.UserViewWrapper
             android:id="@+id/parent"
             android:layout_width="match_parent"
             android:layout_height="0dip"
             android:layout_weight="2"
+            android:layout_marginBottom="8dip">
 
-            android:layout_marginBottom="8dip"/>
+        <!-- Parent background view -->
+        <pl.modrakowski.android.UserBackgroundView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:tag="@string/background_view_tag"
 
-    <include
-            layout="@layout/user_view"
+                android:background="@drawable/google_now_background">
 
+            <include layout="@layout/test_parent_background_layout"/>
+
+        </pl.modrakowski.android.UserBackgroundView>
+
+        <!-- Parent fore ground view -->
+        <pl.modrakowski.android.UserForegroundView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:tag="@string/foreground_view_tag"
+
+                android:background="@drawable/tlo">
+
+            <include layout="@layout/test_parent_foreground_layout"/>
+
+        </pl.modrakowski.android.UserForegroundView>
+
+    </pl.modrakowski.android.UserViewWrapper>
+
+    <!-- Left Child view. -->
+    <pl.modrakowski.android.UserViewWrapper
             android:id="@+id/left_child"
             android:layout_width="match_parent"
             android:layout_height="0dip"
             android:layout_weight="1"
+            android:layout_marginBottom="8dip">
 
-            android:layout_marginBottom="8dip"/>
+        <pl.modrakowski.android.UserBackgroundView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:tag="@string/background_view_tag"
 
-    <include
+                android:background="@drawable/google_now_background">
+
+            <include layout="@layout/test_left_child_background_layout"/>
+
+        </pl.modrakowski.android.UserBackgroundView>
+
+        <pl.modrakowski.android.UserForegroundView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:tag="@string/foreground_view_tag"
+
+                android:background="@drawable/tlo">
+
+            <include layout="@layout/test_left_child_foreground_layout"/>
+
+        </pl.modrakowski.android.UserForegroundView>
+
+    </pl.modrakowski.android.UserViewWrapper>
+
+    <!-- Right Child view. -->
+    <pl.modrakowski.android.UserViewWrapper
             android:id="@+id/right_child"
-            layout="@layout/user_view"
-
             android:layout_width="match_parent"
             android:layout_height="0dip"
-            android:layout_weight="1"/>
+            android:layout_weight="1">
 
+        <pl.modrakowski.android.UserBackgroundView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:tag="@string/background_view_tag"
 
+                android:background="@drawable/google_now_background">
+
+            <include layout="@layout/test_right_child_background_layout"/>
+
+        </pl.modrakowski.android.UserBackgroundView>
+
+        <pl.modrakowski.android.UserForegroundView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:tag="@string/foreground_view_tag"
+
+                android:background="@drawable/tlo">
+
+            <include layout="@layout/test_right_child_foreground_layout"/>
+
+        </pl.modrakowski.android.UserForegroundView>
+
+    </pl.modrakowski.android.UserViewWrapper>
+
+    <!-- Buttons container -->
     <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -62,5 +134,6 @@
                 android:text="Prompt"/>
 
     </LinearLayout>
+
 </LinearLayout>
 

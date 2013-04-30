@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="coral">#FF3354</color>
+    <color name="gray">#707070</color>
+    <color name="light_gray">#d3d3d3</color>
+    <color name="google_now_background">#e5e5e5</color>
+    <color name="google_now_item_light_background">#515254</color>
+    <color name="google_now_item_dark_background">#4a4b4d</color>
+</resources>

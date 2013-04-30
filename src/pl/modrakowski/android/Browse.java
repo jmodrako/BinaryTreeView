@@ -3,7 +3,6 @@ package pl.modrakowski.android;
 import android.app.Activity;
 import android.util.Log;
 import android.widget.Button;
-import android.widget.TextView;
 import com.googlecode.androidannotations.annotations.*;
 
 @NoTitle
@@ -44,13 +43,13 @@ public class Browse extends Activity {
 
     @AfterViews
     protected void afterViews() {
-        TextView parentText = (TextView) parentLayoutWrapper.findViewById(R.id.name);
+        /*TextView parentText = (TextView) parentLayoutWrapper.findViewById(R.id.name);
         TextView leftText = (TextView) leftLayoutWrapper.findViewById(R.id.name);
         TextView rightText = (TextView) rightLayoutWrapper.findViewById(R.id.name);
 
         parentText.setText("PARENT");
         leftText.setText("LEFT");
-        rightText.setText("RIGHT");
+        rightText.setText("RIGHT");*/
     }
 
     @Click(R.id.to_left)

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="child_foreground_text_size">28dip</dimen>
+    <dimen name="background_text_size">24dip</dimen>
+    <dimen name="parent_foreground_text_size">32dip</dimen>
+</resources>

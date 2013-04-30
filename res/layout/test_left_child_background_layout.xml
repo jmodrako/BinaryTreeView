@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+             xmlns:custom="http://schemas.android.com/apk/res/pl.modrakowski.android"
+             android:layout_width="match_parent"
+             android:layout_height="match_parent">
+
+    <pl.modrakowski.android.CustomFontTextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="Left Child Background Layout"
+            android:textColor="@android:color/white"
+            android:textSize="@dimen/background_text_size"
+            android:gravity="center"
+
+            custom:customFont="Roboto-Condensed.ttf"/>
+
+</FrameLayout>
