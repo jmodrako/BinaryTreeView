@@ -54,12 +54,16 @@ public class Browse extends Activity {
 
     @Click(R.id.to_left)
     protected void onLeftClick() {
-        UserViewWrapper.setOpenDirection(UserViewWrapper.OpenDirection.TO_LEFT);
+        parentLayoutWrapper.setOpenDirection(UserViewWrapper.OpenDirection.TO_LEFT);
+        rightLayoutWrapper.setOpenDirection(UserViewWrapper.OpenDirection.TO_LEFT);
+        leftLayoutWrapper.setOpenDirection(UserViewWrapper.OpenDirection.TO_LEFT);
     }
 
     @Click(R.id.to_right)
     protected void onRightClick() {
-        UserViewWrapper.setOpenDirection(UserViewWrapper.OpenDirection.TO_RIGHT);
+        parentLayoutWrapper.setOpenDirection(UserViewWrapper.OpenDirection.TO_RIGHT);
+        rightLayoutWrapper.setOpenDirection(UserViewWrapper.OpenDirection.TO_RIGHT);
+        leftLayoutWrapper.setOpenDirection(UserViewWrapper.OpenDirection.TO_RIGHT);
     }
 
     @Click(R.id.prompt)

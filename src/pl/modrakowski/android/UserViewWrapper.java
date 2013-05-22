@@ -17,6 +17,8 @@ import com.nineoldandroids.view.ViewHelper;
  * Time: 1:47 PM
  * Departament: IT Mobile
  * Company: Implix
+ * <p/>
+ * This view is responsible for maintenance two other views: background view (@UserBackgroundView) and foreground view (@UserForegroundView).
  */
 public class UserViewWrapper extends FrameLayout {
 
@@ -25,7 +27,7 @@ public class UserViewWrapper extends FrameLayout {
     }
 
     public static enum WrapperState {
-        IDLE, ANIMATING
+        IDLE, ANIMATING, VERTICAL_MOVE, HORIZONTAL_MOVE
     }
 
     public static enum OpenDirection {
@@ -35,17 +37,19 @@ public class UserViewWrapper extends FrameLayout {
     private long animationDuration;
     private long openThresholdPx;
     private long closeThresholdPx;
+    private long scaledTouchSlope;
 
     private boolean isForegroundViewIsOpen;
-    private float downX;
-    private float curentTransX;
+    private int mDownX;
+    private int mDownY;
+    private float mCurentTransX;
 
     private UserBackgroundView userBackgroundView;
     private UserForegroundView userForegroundView;
 
     private WrapperUserType wrapperUserType;
-    private WrapperState wrapperState;
-    private static OpenDirection openDirection;
+    private WrapperState currentWrapperState;
+    private OpenDirection openDirection;
 
     public UserViewWrapper(Context context) {
         super(context);
@@ -64,12 +68,29 @@ public class UserViewWrapper extends FrameLayout {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        if (wrapperState.equals(WrapperState.IDLE)) {
-            if (isForegroundViewIsOpen) {
-                handleTouchOnOpenForegroundView(event);
-            } else {
-                handleTouchOnCloseForegroundView(event);
+        // We can handle touch events only when state is not ANIMATING.
+        if (!currentWrapperState.equals(WrapperState.ANIMATING)) {
+
+            setCurrentWrapperState(determineWrapperMoveState(event));
+
+            switch (currentWrapperState) {
+                case IDLE:
+
+                    break;
+                case VERTICAL_MOVE:
+
+                    break;
+                case HORIZONTAL_MOVE:
+
+                    if (isForegroundViewIsOpen) {
+                        handleTouchOnOpenForegroundView(event);
+                    } else {
+                        handleTouchOnCloseForegroundView(event);
+                    }
+
+                    break;
             }
+
             return true;
         } else {
             return false;
@@ -118,7 +139,7 @@ public class UserViewWrapper extends FrameLayout {
         }
     }
 
-    public static void setOpenDirection(OpenDirection direction) {
+    public void setOpenDirection(OpenDirection direction) {
         openDirection = direction;
     }
 
@@ -128,16 +149,15 @@ public class UserViewWrapper extends FrameLayout {
         userBackgroundView.setEnableViews(foregroundViewIsOpen);
     }
 
-    private void handleTouchOnOpenForegroundView(MotionEvent motionEvent) {
-        switch (motionEvent.getActionMasked()) {
-            case MotionEvent.ACTION_DOWN:
-                downX = motionEvent.getRawX();
-                curentTransX = ViewHelper.getTranslationX(userForegroundView);
-                break;
-            case MotionEvent.ACTION_MOVE:
-                float dxWithCurrentTransX = motionEvent.getRawX() - downX + curentTransX;
 
-                if (openDirection.equals(OpenDirection.TO_LEFT) && Math.signum(motionEvent.getRawX() - downX) == 1) {
+    private void handleTouchOnOpenForegroundView(MotionEvent motionEvent) {
+
+        switch (motionEvent.getActionMasked()) {
+
+            case MotionEvent.ACTION_MOVE:
+                float dxWithCurrentTransX = motionEvent.getRawX() - mDownX + mCurentTransX;
+
+                if (openDirection.equals(OpenDirection.TO_LEFT) && Math.signum(motionEvent.getRawX() - mDownX) == 1) {
                     // Show partially background view.
                     float leftEdge = userBackgroundView.getRight() - Math.abs(dxWithCurrentTransX);
                     float rightEdge = userBackgroundView.getRight();
@@ -145,7 +165,7 @@ public class UserViewWrapper extends FrameLayout {
 
                     // Apply translation x of foreground view.
                     ViewHelper.setTranslationX(userForegroundView, dxWithCurrentTransX);
-                } else if (openDirection.equals(OpenDirection.TO_RIGHT) && Math.signum(motionEvent.getRawX() - downX) == -1) {
+                } else if (openDirection.equals(OpenDirection.TO_RIGHT) && Math.signum(motionEvent.getRawX() - mDownX) == -1) {
                     // Show partially background view.
                     float leftEdge = userBackgroundView.getLeft();
                     float rightEdge = userBackgroundView.getLeft() + Math.abs(dxWithCurrentTransX);
@@ -159,7 +179,7 @@ public class UserViewWrapper extends FrameLayout {
             case MotionEvent.ACTION_UP:
                 switch (openDirection) {
                     case TO_LEFT:
-                        if (motionEvent.getRawX() - downX < closeThresholdPx) {
+                        if (motionEvent.getRawX() - mDownX < closeThresholdPx) {
                             ValueAnimator.AnimatorUpdateListener updateListener = new ValueAnimator.AnimatorUpdateListener() {
                                 @Override
                                 public void onAnimationUpdate(ValueAnimator valueAnimator) {
@@ -190,7 +210,7 @@ public class UserViewWrapper extends FrameLayout {
                         }
                         break;
                     case TO_RIGHT:
-                        if (motionEvent.getRawX() - downX < -closeThresholdPx) {
+                        if (motionEvent.getRawX() - mDownX < -closeThresholdPx) {
                             ValueAnimator.AnimatorUpdateListener updateListener = new ValueAnimator.AnimatorUpdateListener() {
                                 @Override
                                 public void onAnimationUpdate(ValueAnimator valueAnimator) {
@@ -200,13 +220,13 @@ public class UserViewWrapper extends FrameLayout {
                             BetterAnimatorListener animatorListener = new BetterAnimatorListener() {
                                 @Override
                                 public void onAnimationStart(Animator animator) {
-                                    setWrapperState(WrapperState.ANIMATING);
+                                    setCurrentWrapperState(WrapperState.ANIMATING);
                                 }
 
                                 @Override
                                 public void onAnimationEnd(Animator animator) {
                                     setForegroundViewIsOpen(false);
-                                    setWrapperState(WrapperState.IDLE);
+                                    setCurrentWrapperState(WrapperState.IDLE);
                                 }
                             };
                             swipeAnimation(userForegroundView, updateListener, animatorListener, 0);
@@ -222,13 +242,13 @@ public class UserViewWrapper extends FrameLayout {
                             BetterAnimatorListener animatorListener = new BetterAnimatorListener() {
                                 @Override
                                 public void onAnimationStart(Animator animator) {
-                                    setWrapperState(WrapperState.ANIMATING);
+                                    setCurrentWrapperState(WrapperState.ANIMATING);
                                 }
 
                                 @Override
                                 public void onAnimationEnd(Animator animator) {
                                     setForegroundViewIsOpen(true);
-                                    setWrapperState(WrapperState.IDLE);
+                                    setCurrentWrapperState(WrapperState.IDLE);
                                 }
                             };
                             cancelAnimation(userForegroundView, updateListener, animatorListener, userForegroundView.getMeasuredWidth()
@@ -241,12 +261,11 @@ public class UserViewWrapper extends FrameLayout {
     }
 
     private void handleTouchOnCloseForegroundView(MotionEvent motionEvent) {
+
         switch (motionEvent.getActionMasked()) {
-            case MotionEvent.ACTION_DOWN:
-                downX = motionEvent.getRawX();
-                break;
+
             case MotionEvent.ACTION_MOVE:
-                float dx = motionEvent.getRawX() - downX;
+                float dx = motionEvent.getRawX() - mDownX;
 
                 if (openDirection.equals(OpenDirection.TO_LEFT) && Math.signum(dx) == -1) {
                     // Show partially background view.
@@ -280,13 +299,13 @@ public class UserViewWrapper extends FrameLayout {
                             BetterAnimatorListener animatorListener = new BetterAnimatorListener() {
                                 @Override
                                 public void onAnimationStart(Animator animator) {
-                                    setWrapperState(WrapperState.ANIMATING);
+                                    setCurrentWrapperState(WrapperState.ANIMATING);
                                 }
 
                                 @Override
                                 public void onAnimationEnd(Animator animator) {
                                     setForegroundViewIsOpen(true);
-                                    setWrapperState(WrapperState.IDLE);
+                                    setCurrentWrapperState(WrapperState.IDLE);
                                 }
                             };
                             swipeAnimation(userForegroundView, updateListener, animatorListener, -userForegroundView.getMeasuredWidth());
@@ -300,13 +319,13 @@ public class UserViewWrapper extends FrameLayout {
                             BetterAnimatorListener animatorListener = new BetterAnimatorListener() {
                                 @Override
                                 public void onAnimationStart(Animator animator) {
-                                    setWrapperState(WrapperState.ANIMATING);
+                                    setCurrentWrapperState(WrapperState.ANIMATING);
                                 }
 
                                 @Override
                                 public void onAnimationEnd(Animator animator) {
                                     setForegroundViewIsOpen(false);
-                                    setWrapperState(WrapperState.IDLE);
+                                    setCurrentWrapperState(WrapperState.IDLE);
                                 }
                             };
                             cancelAnimation(userForegroundView, updateListener, animatorListener, 0);
@@ -323,13 +342,13 @@ public class UserViewWrapper extends FrameLayout {
                             BetterAnimatorListener animatorListener = new BetterAnimatorListener() {
                                 @Override
                                 public void onAnimationStart(Animator animator) {
-                                    setWrapperState(WrapperState.ANIMATING);
+                                    setCurrentWrapperState(WrapperState.ANIMATING);
                                 }
 
                                 @Override
                                 public void onAnimationEnd(Animator animator) {
                                     setForegroundViewIsOpen(true);
-                                    setWrapperState(WrapperState.IDLE);
+                                    setCurrentWrapperState(WrapperState.IDLE);
                                 }
 
                             };
@@ -345,13 +364,13 @@ public class UserViewWrapper extends FrameLayout {
                             BetterAnimatorListener animatorListener = new BetterAnimatorListener() {
                                 @Override
                                 public void onAnimationStart(Animator animator) {
-                                    setWrapperState(WrapperState.ANIMATING);
+                                    setCurrentWrapperState(WrapperState.ANIMATING);
                                 }
 
                                 @Override
                                 public void onAnimationEnd(Animator animator) {
                                     setForegroundViewIsOpen(false);
-                                    setWrapperState(WrapperState.IDLE);
+                                    setCurrentWrapperState(WrapperState.IDLE);
                                 }
                             };
                             cancelAnimation(userForegroundView, updateListener, animatorListener, 0);
@@ -362,6 +381,37 @@ public class UserViewWrapper extends FrameLayout {
         }
     }
 
+
+    private WrapperState determineWrapperMoveState(MotionEvent motionEvent) {
+
+        switch (motionEvent.getActionMasked()) {
+            case MotionEvent.ACTION_DOWN:
+                // mDown's variables and mCurrentTransx is use to do calculations below and in methods handle(Open/Close)ForegroundView.
+                mDownX = (int) motionEvent.getRawX();
+                mDownY = (int) motionEvent.getRawY();
+                mCurentTransX = ViewHelper.getTranslationX(userForegroundView);
+                break;
+
+            case MotionEvent.ACTION_MOVE:
+                int currentX = (int) motionEvent.getRawX();
+                int currentY = (int) motionEvent.getRawY();
+                int dx = Math.abs(currentX - mDownX);
+                int dy = Math.abs(currentY - mDownY);
+
+                Browse.Logger.i("X: " + dx);
+                Browse.Logger.i("Y: " + dy);
+
+                if (dx > scaledTouchSlope) {
+                    Browse.Logger.i("Return HORIZONTAL");
+                    return WrapperState.HORIZONTAL_MOVE;
+                } else if (dy > scaledTouchSlope) {
+                    Browse.Logger.i("Return VERTICAL");
+                    return WrapperState.VERTICAL_MOVE;
+                }
+        }
+
+        return currentWrapperState;
+    }
 
     private void swipeAnimation(final View swipeView, ValueAnimator.AnimatorUpdateListener animatorListener, Animator.AnimatorListener listener, float translation) {
         ObjectAnimator applyTranslationX = ObjectAnimator.ofFloat(swipeView, "translationX", translation);
@@ -382,8 +432,8 @@ public class UserViewWrapper extends FrameLayout {
     }
 
 
-    private void setWrapperState(WrapperState wrapperState) {
-        this.wrapperState = wrapperState;
+    private void setCurrentWrapperState(WrapperState wrapperState) {
+        this.currentWrapperState = wrapperState;
     }
 
 
@@ -412,7 +462,7 @@ public class UserViewWrapper extends FrameLayout {
         });
 
         // Set initial state of wrapper.
-        setWrapperState(WrapperState.IDLE);
+        setCurrentWrapperState(WrapperState.IDLE);
 
         // Set initial direction opening views.
         setOpenDirection(OpenDirection.TO_RIGHT);
@@ -423,7 +473,7 @@ public class UserViewWrapper extends FrameLayout {
             public boolean onPreDraw() {
                 switch (getId()) {
                     case R.id.parent:
-                       // userForegroundView.setBackgroundColor(getResources().getColor(android.R.color.holo_blue_dark));
+                        // userForegroundView.setBackgroundColor(getResources().getColor(android.R.color.holo_blue_dark));
                         wrapperUserType = WrapperUserType.PARENT;
                         break;
                     case R.id.left_child:
@@ -440,6 +490,7 @@ public class UserViewWrapper extends FrameLayout {
         animationDuration = getResources().getInteger(R.integer.swipe_in_out_duration_ms);
         openThresholdPx = getResources().getInteger(R.integer.open_threshold_px);
         closeThresholdPx = getResources().getInteger(R.integer.close_threshold_px);
+        scaledTouchSlope = getResources().getInteger(R.integer.scaled_touch_slope);
 
     }
 
