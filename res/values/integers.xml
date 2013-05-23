@@ -3,5 +3,5 @@
     <integer name="swipe_in_out_duration_ms">260</integer>
     <integer name="open_threshold_px">200</integer>
     <integer name="close_threshold_px">200</integer>
-    <integer name="scaled_touch_slope">15</integer>
+    <integer name="scaled_touch_slope_px">15</integer>
 </resources>

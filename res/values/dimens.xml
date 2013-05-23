@@ -3,4 +3,6 @@
     <dimen name="child_foreground_text_size">28dip</dimen>
     <dimen name="background_text_size">24dip</dimen>
     <dimen name="parent_foreground_text_size">32dip</dimen>
+
+    <dimen name="main_screen_padding">8dip</dimen>
 </resources>

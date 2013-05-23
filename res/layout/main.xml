@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:custom="http://schemas.android.com/apk/res/pl.modrakowski.android"
               android:orientation="vertical"
               android:layout_width="fill_parent"
               android:layout_height="fill_parent"
               android:weightSum="4"
-              android:paddingLeft="16dip"
-              android:paddingRight="16dip"
-              android:paddingTop="16dip"
+              android:paddingLeft="@dimen/main_screen_padding"
+              android:paddingRight="@dimen/main_screen_padding"
+              android:paddingTop="@dimen/main_screen_padding"
               android:background="@color/google_now_background">
 
     <!-- Parent view. -->
@@ -15,7 +16,8 @@
             android:layout_width="match_parent"
             android:layout_height="0dip"
             android:layout_weight="2"
-            android:layout_marginBottom="8dip">
+            android:layout_marginBottom="8dip"
+            custom:user_type="parent">
 
         <!-- Parent background view -->
         <pl.modrakowski.android.UserBackgroundView
@@ -49,7 +51,8 @@
             android:layout_width="match_parent"
             android:layout_height="0dip"
             android:layout_weight="1"
-            android:layout_marginBottom="8dip">
+            android:layout_marginBottom="8dip"
+            custom:user_type="leftChild">
 
         <pl.modrakowski.android.UserBackgroundView
                 android:layout_width="match_parent"
@@ -80,7 +83,8 @@
             android:id="@+id/right_child"
             android:layout_width="match_parent"
             android:layout_height="0dip"
-            android:layout_weight="1">
+            android:layout_weight="1"
+            custom:user_type="rightChild">
 
         <pl.modrakowski.android.UserBackgroundView
                 android:layout_width="match_parent"

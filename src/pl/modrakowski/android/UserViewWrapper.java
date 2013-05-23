@@ -1,10 +1,11 @@
 package pl.modrakowski.android;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewTreeObserver;
+import android.view.ViewGroup;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.BounceInterpolator;
 import android.widget.FrameLayout;
@@ -50,29 +51,32 @@ public class UserViewWrapper extends FrameLayout {
     private long openThresholdPx;
     private long closeThresholdPx;
     private long scaledTouchSlope;
+    private long mainScreenPaddingTop;
 
     private boolean isForegroundViewIsOpen;
+    private boolean isViewCanBeMovedOutsideScreen;
 
     private int mDownX;
     private int mDownY;
     private int mOriginalViewTop;
+    private int mOriginalViewBottom;
 
     private float mCurentTransX;
 
 
     public UserViewWrapper(Context context) {
         super(context);
-        init(context);
+        init(context, null);
     }
 
     public UserViewWrapper(Context context, AttributeSet attrs) {
         super(context, attrs);
-        init(context);
+        init(context, attrs);
     }
 
     public UserViewWrapper(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
-        init(context);
+        init(context, attrs);
     }
 
 
@@ -176,6 +180,13 @@ public class UserViewWrapper extends FrameLayout {
         openDirection = direction;
     }
 
+    public boolean isViewCanBeMovedOutsideScreen() {
+        return isViewCanBeMovedOutsideScreen;
+    }
+
+    public void setViewCanBeMovedOutsideScreen(boolean viewCanBeMovedOutsideScreen) {
+        isViewCanBeMovedOutsideScreen = viewCanBeMovedOutsideScreen;
+    }
 
     private void setForegroundViewIsOpen(boolean foregroundViewIsOpen) {
         isForegroundViewIsOpen = foregroundViewIsOpen;
@@ -442,8 +453,27 @@ public class UserViewWrapper extends FrameLayout {
     private void handleTouchUpDown(MotionEvent motionEvent) {
 
         switch (motionEvent.getActionMasked()) {
+
             case MotionEvent.ACTION_MOVE:
-                float dy = motionEvent.getRawY() - mDownY;
+                int dy = (int) (motionEvent.getRawY() - mDownY);
+                int parentHeight = ((ViewGroup) getParent()).getMeasuredHeight();
+                int topEdgeConstrain = (int) (mainScreenPaddingTop - mOriginalViewTop);
+                int bottomEdgeConstrain = (int) (parentHeight - mOriginalViewBottom - mainScreenPaddingTop);
+                int currentTransY = (int) ViewHelper.getTranslationY(this);
+
+                if (!isViewCanBeMovedOutsideScreen) {   // Forbid move outside top edge.
+
+                    if (dy < topEdgeConstrain) {
+                        //Browse.Logger.i("góra!");
+                        dy = topEdgeConstrain;
+
+                    } else if (dy > bottomEdgeConstrain) {   // Forbid move outside bottom edge.
+                        //Browse.Logger.i("dół!");
+                        dy = bottomEdgeConstrain;
+                    }
+
+                }
+
                 ViewHelper.setTranslationY(this, dy);
                 break;
 
@@ -500,6 +530,7 @@ public class UserViewWrapper extends FrameLayout {
                 mDownY = (int) motionEvent.getRawY();
                 mCurentTransX = ViewHelper.getTranslationX(userForegroundView);
                 mOriginalViewTop = getTop();
+                mOriginalViewBottom = getBottom();
 
                 break;
 
@@ -534,7 +565,7 @@ public class UserViewWrapper extends FrameLayout {
     }
 
 
-    private void init(Context context) {
+    private void init(Context context, AttributeSet attributeSet) {
         setWillNotDraw(false);
 
         // Set initial state of wrapper.
@@ -567,34 +598,40 @@ public class UserViewWrapper extends FrameLayout {
             }
         });
 
-        // Set preDrawListener to change colors on views.
-        getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
-            @Override
-            public boolean onPreDraw() {
-                switch (getId()) {
-                    case R.id.parent:
-                        wrapperUserType = WrapperUserType.PARENT;
-                        break;
-                    case R.id.left_child:
-                        wrapperUserType = WrapperUserType.LEFT_CHILD;
-                        break;
-                    case R.id.right_child:
-                        wrapperUserType = WrapperUserType.RIGHT_CHILD;
-                        break;
-                }
-                return true;
+        if (attributeSet != null) {
+            int userType = -1;
+            TypedArray typedArray = context.obtainStyledAttributes(attributeSet, R.styleable.UserViewWrapperAttrs);
+
+            switch (typedArray.getInt(0, userType)) {
+                // Parent.
+                case 1:
+                    wrapperUserType = WrapperUserType.PARENT;
+                    break;
+                // Left child.
+                case 2:
+                    wrapperUserType = WrapperUserType.LEFT_CHILD;
+                    break;
+                // Right child.
+                case 3:
+                    wrapperUserType = WrapperUserType.RIGHT_CHILD;
+                    break;
             }
-        });
+
+        }
 
         // Initialize constants from resources.
         animationDuration = getResources().getInteger(R.integer.swipe_in_out_duration_ms);
         openThresholdPx = getResources().getInteger(R.integer.open_threshold_px);
         closeThresholdPx = getResources().getInteger(R.integer.close_threshold_px);
-        scaledTouchSlope = getResources().getInteger(R.integer.scaled_touch_slope);
+        scaledTouchSlope = getResources().getInteger(R.integer.scaled_touch_slope_px);
+        mainScreenPaddingTop = getResources().getDimensionPixelSize(R.dimen.main_screen_padding);
 
         // Register self as listener for messages from other wrappers.
         sWrappers.add(this);
+
+        isViewCanBeMovedOutsideScreen = false;
     }
+
 
     /**
      * Helper class to avoid create useless methods in base Listener interface.
