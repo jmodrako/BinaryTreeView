@@ -1,7 +1,6 @@
 package pl.modrakowski.android;
 
 import android.content.Context;
-import android.graphics.Canvas;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
@@ -11,6 +10,8 @@ import android.view.animation.BounceInterpolator;
 import android.widget.FrameLayout;
 import com.nineoldandroids.animation.*;
 import com.nineoldandroids.view.ViewHelper;
+
+import java.util.ArrayList;
 
 /**
  * User: Jack Modrakowski
@@ -40,9 +41,10 @@ public class UserViewWrapper extends FrameLayout {
 
     private WrapperUserType wrapperUserType;
     private WrapperState currentWrapperState;
+    private WrapperState previousWrapperState;
     private OpenDirection openDirection;
 
-    private static WrapperUserType clickedView;
+    private static ArrayList<UserViewWrapper> sWrappers = new ArrayList<UserViewWrapper>();
 
     private long animationDuration;
     private long openThresholdPx;
@@ -50,7 +52,6 @@ public class UserViewWrapper extends FrameLayout {
     private long scaledTouchSlope;
 
     private boolean isForegroundViewIsOpen;
-    private boolean invisibleView;
 
     private int mDownX;
     private int mDownY;
@@ -76,37 +77,23 @@ public class UserViewWrapper extends FrameLayout {
 
 
     @Override
-    protected void onDraw(Canvas canvas) {
-
-        if (clickedView == null || clickedView.equals(wrapperUserType)) {
-            setVisibility(View.VISIBLE);
-            invisibleView = true;
-        } else {
-            setVisibility(View.INVISIBLE);
-            invisibleView = false;
-        }
-
-        super.onDraw(canvas);
-    }
-
-    @Override
     public boolean onTouchEvent(MotionEvent event) {
 
         // We can handle touch events only when state is not ANIMATING.
         if (!currentWrapperState.equals(WrapperState.ANIMATING)) {
 
             switch (currentWrapperState) {
+
                 case IDLE:
                     setCurrentWrapperState(determineWrapperState(event));
-                    Browse.Logger.i("determineWrapperState: " + currentWrapperState);
+//                    Browse.Logger.i("determineWrapperState: " + currentWrapperState);
+
+                    // Watch for wrapper state changes.
+                    if (previousWrapperState.equals(WrapperState.IDLE) && currentWrapperState.equals(WrapperState.VERTICAL_MOVE)) {
+                        sendMsgToRestOfWrappers(CallbackMsg.SET_INVISIBLE);
+                    }
                     break;
                 case VERTICAL_MOVE:
-
-                    // Code below get execute only once.
-                    if (clickedView != wrapperUserType) {
-                        clickedView = wrapperUserType;
-                        postInvalidate();
-                    }
 
                     handleTouchUpDown(event);
 
@@ -181,6 +168,30 @@ public class UserViewWrapper extends FrameLayout {
         userBackgroundView.setEnableViews(foregroundViewIsOpen);
     }
 
+
+    private void callbackFromOtherWrapperViews(int callbackMsg) {
+        Browse.Logger.i("Current view: " + wrapperUserType + ", callbackMsg: " + callbackMsg);
+
+        switch (callbackMsg) {
+            case CallbackMsg.SET_INVISIBLE:
+                setVisibility(View.INVISIBLE);
+                postInvalidate();
+                break;
+            case CallbackMsg.SET_VISIBLE:
+                setVisibility(View.VISIBLE);
+                postInvalidate();
+                break;
+        }
+
+    }
+
+    private void sendMsgToRestOfWrappers(int callbackMsg) {
+        for (UserViewWrapper userViewWrapper : sWrappers) {
+            if (!userViewWrapper.wrapperUserType.equals(wrapperUserType)) {
+                userViewWrapper.callbackFromOtherWrapperViews(callbackMsg);
+            }
+        }
+    }
 
     private void handleTouchOnOpenForegroundView(MotionEvent motionEvent) {
 
@@ -428,10 +439,10 @@ public class UserViewWrapper extends FrameLayout {
                 moveViewBackToOriginalPlace(this, new BetterAnimatorListener() {
                     @Override
                     public void onAnimationEnd(Animator animator) {
-                        Browse.Logger.i("onAnimationEnd");
+
                         setCurrentWrapperState(WrapperState.IDLE);
-                        clickedView = null;
-                        postInvalidate();
+                        sendMsgToRestOfWrappers(CallbackMsg.SET_VISIBLE);
+
                     }
                 }, mOriginalViewTop - getTop());
 
@@ -459,8 +470,8 @@ public class UserViewWrapper extends FrameLayout {
                 int dx = Math.abs(currentX - mDownX);
                 int dy = Math.abs(currentY - mDownY);
 
-                Browse.Logger.i("X: " + dx);
-                Browse.Logger.i("Y: " + dy);
+                /*Browse.Logger.i("X: " + dx);
+                Browse.Logger.i("Y: " + dy);*/
 
                 if (dx > scaledTouchSlope && !currentWrapperState.equals(WrapperState.VERTICAL_MOVE)) {
                     return WrapperState.HORIZONTAL_MOVE;
@@ -501,13 +512,32 @@ public class UserViewWrapper extends FrameLayout {
         cancelTranslationX.start();
     }
 
+
     private void setCurrentWrapperState(WrapperState wrapperState) {
-        this.currentWrapperState = wrapperState;
+        if (currentWrapperState == null) {
+            throw new RuntimeException("Current wrapper state must be set!");
+        }
+
+        setPreviousWrapperState(currentWrapperState);
+        currentWrapperState = wrapperState;
+    }
+
+    private void setPreviousWrapperState(WrapperState wrapperState) {
+        previousWrapperState = wrapperState;
     }
 
 
     private void init(Context context) {
         setWillNotDraw(false);
+
+        // Set previous state of wrapper.
+        setPreviousWrapperState(WrapperState.IDLE);
+
+        // Set initial state of wrapper.
+        setCurrentWrapperState(WrapperState.IDLE);
+
+        // Set initial direction opening views.
+        setOpenDirection(OpenDirection.TO_RIGHT);
 
         // Initialize foreground/background views.
         setOnHierarchyChangeListener(new OnHierarchyChangeListener() {
@@ -530,19 +560,12 @@ public class UserViewWrapper extends FrameLayout {
             }
         });
 
-        // Set initial state of wrapper.
-        setCurrentWrapperState(WrapperState.IDLE);
-
-        // Set initial direction opening views.
-        setOpenDirection(OpenDirection.TO_RIGHT);
-
         // Set preDrawListener to change colors on views.
         getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
             @Override
             public boolean onPreDraw() {
                 switch (getId()) {
                     case R.id.parent:
-                        // userForegroundView.setBackgroundColor(getResources().getColor(android.R.color.holo_blue_dark));
                         wrapperUserType = WrapperUserType.PARENT;
                         break;
                     case R.id.left_child:
@@ -550,7 +573,6 @@ public class UserViewWrapper extends FrameLayout {
                         break;
                     case R.id.right_child:
                         wrapperUserType = WrapperUserType.RIGHT_CHILD;
-                        //userForegroundView.setBackgroundColor(getResources().getColor(android.R.color.holo_blue_light));
                         break;
                 }
                 return true;
@@ -563,6 +585,8 @@ public class UserViewWrapper extends FrameLayout {
         closeThresholdPx = getResources().getInteger(R.integer.close_threshold_px);
         scaledTouchSlope = getResources().getInteger(R.integer.scaled_touch_slope);
 
+        // Register itself as listener for messages from other wrappers.
+        sWrappers.add(this);
     }
 
 
@@ -589,4 +613,8 @@ public class UserViewWrapper extends FrameLayout {
         }
     }
 
+    private static class CallbackMsg {
+        public static final int SET_INVISIBLE = 1 << 1;
+        public static final int SET_VISIBLE = 1 << 2;
+    }
 }
