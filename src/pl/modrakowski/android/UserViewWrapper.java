@@ -115,6 +115,20 @@ public class UserViewWrapper extends FrameLayout {
         }
     }
 
+    @Override
+    public void dispatchWindowVisibilityChanged(int visibility) {
+        super.dispatchWindowVisibilityChanged(visibility);
+
+        // View.GONE = 8;
+        // View.INVISIBLE = 4;
+        // View.VISIBLE = 0;
+
+        // Unregister self from wrappers array list.
+        if (visibility == View.INVISIBLE || visibility == View.GONE) {
+            sWrappers.remove(this);
+        }
+    }
+
 
     public void startPromptAnimation(boolean immediately, long delay) {
         final AnimatorSet animatorSet = new AnimatorSet();
@@ -170,7 +184,7 @@ public class UserViewWrapper extends FrameLayout {
 
 
     private void callbackFromOtherWrapperViews(int callbackMsg) {
-        Browse.Logger.i("Current view: " + wrapperUserType + ", callbackMsg: " + callbackMsg);
+        // Browse.Logger.i("Current view: " + wrapperUserType + ", callbackMsg: " + callbackMsg);
 
         switch (callbackMsg) {
             case CallbackMsg.SET_INVISIBLE:
@@ -192,6 +206,7 @@ public class UserViewWrapper extends FrameLayout {
             }
         }
     }
+
 
     private void handleTouchOnOpenForegroundView(MotionEvent motionEvent) {
 
@@ -427,12 +442,9 @@ public class UserViewWrapper extends FrameLayout {
     private void handleTouchUpDown(MotionEvent motionEvent) {
 
         switch (motionEvent.getActionMasked()) {
-
             case MotionEvent.ACTION_MOVE:
-
                 float dy = motionEvent.getRawY() - mDownY;
                 ViewHelper.setTranslationY(this, dy);
-
                 break;
 
             case MotionEvent.ACTION_UP:
@@ -445,10 +457,37 @@ public class UserViewWrapper extends FrameLayout {
 
                     }
                 }, mOriginalViewTop - getTop());
-
                 break;
         }
 
+    }
+
+
+    private void swipeAnimation(final View swipeView, ValueAnimator.AnimatorUpdateListener animatorListener, Animator.AnimatorListener listener, float translation) {
+        ObjectAnimator applyTranslationX = ObjectAnimator.ofFloat(swipeView, "translationX", translation);
+        applyTranslationX.setDuration(animationDuration);
+        applyTranslationX.setEvaluator(new FloatEvaluator());
+        applyTranslationX.addUpdateListener(animatorListener);
+        applyTranslationX.addListener(listener);
+        applyTranslationX.start();
+    }
+
+    private void cancelAnimation(final View swipeView, ValueAnimator.AnimatorUpdateListener animatorListener, Animator.AnimatorListener listener, float translation) {
+        ObjectAnimator cancelTranslationX = ObjectAnimator.ofFloat(swipeView, "translationX", translation);
+        cancelTranslationX.setDuration(animationDuration);
+        cancelTranslationX.addUpdateListener(animatorListener);
+        cancelTranslationX.setEvaluator(new FloatEvaluator());
+        cancelTranslationX.addListener(listener);
+        cancelTranslationX.start();
+    }
+
+    private void moveViewBackToOriginalPlace(final View view, Animator.AnimatorListener listener, float translation) {
+        ObjectAnimator cancelTranslationX = ObjectAnimator.ofFloat(view, "translationY", translation);
+        cancelTranslationX.setDuration(animationDuration);
+        //cancelTranslationX.addUpdateListener(animatorListener);
+        //cancelTranslationX.setEvaluator(new FloatEvaluator());
+        cancelTranslationX.addListener(listener);
+        cancelTranslationX.start();
     }
 
 
@@ -485,39 +524,7 @@ public class UserViewWrapper extends FrameLayout {
         return currentWrapperState;
     }
 
-    private void swipeAnimation(final View swipeView, ValueAnimator.AnimatorUpdateListener animatorListener, Animator.AnimatorListener listener, float translation) {
-        ObjectAnimator applyTranslationX = ObjectAnimator.ofFloat(swipeView, "translationX", translation);
-        applyTranslationX.setDuration(animationDuration);
-        applyTranslationX.setEvaluator(new FloatEvaluator());
-        applyTranslationX.addUpdateListener(animatorListener);
-        applyTranslationX.addListener(listener);
-        applyTranslationX.start();
-    }
-
-    private void cancelAnimation(final View swipeView, ValueAnimator.AnimatorUpdateListener animatorListener, Animator.AnimatorListener listener, float translation) {
-        ObjectAnimator cancelTranslationX = ObjectAnimator.ofFloat(swipeView, "translationX", translation);
-        cancelTranslationX.setDuration(animationDuration);
-        cancelTranslationX.addUpdateListener(animatorListener);
-        cancelTranslationX.setEvaluator(new FloatEvaluator());
-        cancelTranslationX.addListener(listener);
-        cancelTranslationX.start();
-    }
-
-    private void moveViewBackToOriginalPlace(final View view, Animator.AnimatorListener listener, float translation) {
-        ObjectAnimator cancelTranslationX = ObjectAnimator.ofFloat(view, "translationY", translation);
-        cancelTranslationX.setDuration(animationDuration);
-        //cancelTranslationX.addUpdateListener(animatorListener);
-        //cancelTranslationX.setEvaluator(new FloatEvaluator());
-        cancelTranslationX.addListener(listener);
-        cancelTranslationX.start();
-    }
-
-
     private void setCurrentWrapperState(WrapperState wrapperState) {
-        if (currentWrapperState == null) {
-            throw new RuntimeException("Current wrapper state must be set!");
-        }
-
         setPreviousWrapperState(currentWrapperState);
         currentWrapperState = wrapperState;
     }
@@ -530,11 +537,11 @@ public class UserViewWrapper extends FrameLayout {
     private void init(Context context) {
         setWillNotDraw(false);
 
-        // Set previous state of wrapper.
-        setPreviousWrapperState(WrapperState.IDLE);
-
         // Set initial state of wrapper.
         setCurrentWrapperState(WrapperState.IDLE);
+
+        // Set previous state of wrapper.
+        setPreviousWrapperState(WrapperState.IDLE);
 
         // Set initial direction opening views.
         setOpenDirection(OpenDirection.TO_RIGHT);
@@ -585,11 +592,13 @@ public class UserViewWrapper extends FrameLayout {
         closeThresholdPx = getResources().getInteger(R.integer.close_threshold_px);
         scaledTouchSlope = getResources().getInteger(R.integer.scaled_touch_slope);
 
-        // Register itself as listener for messages from other wrappers.
+        // Register self as listener for messages from other wrappers.
         sWrappers.add(this);
     }
 
-
+    /**
+     * Helper class to avoid create useless methods in base Listener interface.
+     */
     private static class BetterAnimatorListener implements Animator.AnimatorListener {
 
         @Override
@@ -613,8 +622,13 @@ public class UserViewWrapper extends FrameLayout {
         }
     }
 
+    /**
+     * Class describes constants types of messages which are can be send to other wrappers.
+     */
     private static class CallbackMsg {
+        // Tell others wrappers to change itself visibility to INVISIBLE.
         public static final int SET_INVISIBLE = 1 << 1;
+        // Tell others wrappers to change itself visibility to VISIBLE.
         public static final int SET_VISIBLE = 1 << 2;
     }
 }
