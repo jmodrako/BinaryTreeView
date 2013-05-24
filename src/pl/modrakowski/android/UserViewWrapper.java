@@ -37,13 +37,19 @@ public class UserViewWrapper extends FrameLayout {
         TO_LEFT, TO_RIGHT, NONE
     }
 
+    public static enum MoveDirection {
+        UP, DOWN, BOTH, NONE
+    }
+
     private UserBackgroundView userBackgroundView;
     private UserForegroundView userForegroundView;
 
     private WrapperUserType wrapperUserType;
     private WrapperState currentWrapperState;
     private WrapperState previousWrapperState;
+
     private OpenDirection openDirection;
+    private MoveDirection moveDirection;
 
     private static ArrayList<UserViewWrapper> sWrappers = new ArrayList<UserViewWrapper>();
 
@@ -82,34 +88,35 @@ public class UserViewWrapper extends FrameLayout {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        Browse.Logger.i("Current state: " + currentWrapperState);
 
         // We can handle touch events only when state is not ANIMATING.
         if (!currentWrapperState.equals(WrapperState.ANIMATING)) {
 
             switch (currentWrapperState) {
-
                 case IDLE:
                     setCurrentWrapperState(determineWrapperState(event));
-//                    Browse.Logger.i("determineWrapperState: " + currentWrapperState);
-
-                    // Watch for wrapper state changes.
-                    if (previousWrapperState.equals(WrapperState.IDLE) && currentWrapperState.equals(WrapperState.VERTICAL_MOVE)) {
-                        sendMsgToRestOfWrappers(CallbackMsg.SET_INVISIBLE);
-                    }
+                    Browse.Logger.i("determineWrapperState: " + currentWrapperState);
                     break;
+
                 case VERTICAL_MOVE:
-
                     handleTouchUpDown(event);
-
                     break;
+
                 case HORIZONTAL_MOVE:
-
-                    if (isForegroundViewIsOpen) {
-                        handleTouchOnOpenForegroundView(event);
+                    // We can swipe view to left or right only when it is possible.
+                    // Else we set state to IDLE to handle other cases.
+                    if (openDirection != OpenDirection.NONE) {
+                        if (isForegroundViewIsOpen) {
+                            Browse.Logger.i("handleTouchOnOpenForegroundView");
+                            handleTouchOnOpenForegroundView(event);
+                        } else {
+                            Browse.Logger.i("handleTouchOnCloseForegroundView");
+                            handleTouchOnCloseForegroundView(event);
+                        }
                     } else {
-                        handleTouchOnCloseForegroundView(event);
+                        setCurrentWrapperState(WrapperState.IDLE);
                     }
-
                     break;
             }
 
@@ -200,11 +207,9 @@ public class UserViewWrapper extends FrameLayout {
         switch (callbackMsg) {
             case CallbackMsg.SET_INVISIBLE:
                 setVisibility(View.INVISIBLE);
-                postInvalidate();
                 break;
             case CallbackMsg.SET_VISIBLE:
                 setVisibility(View.VISIBLE);
-                postInvalidate();
                 break;
         }
 
@@ -474,6 +479,26 @@ public class UserViewWrapper extends FrameLayout {
 
                 }
 
+                // Determine move direction of view. See MoveDirection enum.
+                switch (moveDirection) {
+                    case UP:
+                        if (Math.signum(dy) != -1) {
+                            return;
+                        }
+                        break;
+                    case DOWN:
+                        if (Math.signum(dy) != 1) {
+                            return;
+                        }
+                        break;
+                    case BOTH:
+                        // Nothing.
+                        break;
+                    case NONE:
+                        dy = 0;
+                        break;
+                }
+
                 ViewHelper.setTranslationY(this, dy);
                 break;
 
@@ -556,8 +581,13 @@ public class UserViewWrapper extends FrameLayout {
     }
 
     private void setCurrentWrapperState(WrapperState wrapperState) {
-        setPreviousWrapperState(currentWrapperState);
         currentWrapperState = wrapperState;
+
+        // Watch for wrapper state changes.
+        // Change from IDLE to VERTICAL_MODE.
+        if (previousWrapperState.equals(WrapperState.IDLE) && currentWrapperState.equals(WrapperState.VERTICAL_MOVE)) {
+            sendMsgToRestOfWrappers(CallbackMsg.SET_INVISIBLE);
+        }
     }
 
     private void setPreviousWrapperState(WrapperState wrapperState) {
@@ -568,11 +598,11 @@ public class UserViewWrapper extends FrameLayout {
     private void init(Context context, AttributeSet attributeSet) {
         setWillNotDraw(false);
 
-        // Set initial state of wrapper.
-        setCurrentWrapperState(WrapperState.IDLE);
-
         // Set previous state of wrapper.
         setPreviousWrapperState(WrapperState.IDLE);
+
+        // Set initial state of wrapper.
+        setCurrentWrapperState(WrapperState.IDLE);
 
         // Set initial direction opening views.
         setOpenDirection(OpenDirection.TO_RIGHT);
@@ -598,23 +628,73 @@ public class UserViewWrapper extends FrameLayout {
             }
         });
 
+        // Determine user view type.
         if (attributeSet != null) {
-            int userType = -1;
             TypedArray typedArray = context.obtainStyledAttributes(attributeSet, R.styleable.UserViewWrapperAttrs);
+            int attrsCount = typedArray.getIndexCount();
 
-            switch (typedArray.getInt(0, userType)) {
-                // Parent.
-                case 1:
-                    wrapperUserType = WrapperUserType.PARENT;
-                    break;
-                // Left child.
-                case 2:
-                    wrapperUserType = WrapperUserType.LEFT_CHILD;
-                    break;
-                // Right child.
-                case 3:
-                    wrapperUserType = WrapperUserType.RIGHT_CHILD;
-                    break;
+            for (int i = 0; i < attrsCount; i++) {
+                int attribute = typedArray.getIndex(i);
+
+                switch (attribute) {
+                    case R.styleable.UserViewWrapperAttrs_user_type:
+                        // Get user type from xml attribute.
+                        switch (typedArray.getInt(attribute, 1)) {
+                            // Parent.
+                            case 1:
+                                wrapperUserType = WrapperUserType.PARENT;
+                                break;
+                            // Left child.
+                            case 2:
+                                wrapperUserType = WrapperUserType.LEFT_CHILD;
+                                break;
+                            // Right child.
+                            case 3:
+                                wrapperUserType = WrapperUserType.RIGHT_CHILD;
+                                break;
+                        }
+                        break;
+                    case R.styleable.UserViewWrapperAttrs_open_direction:
+                        // Get open type from xml attribute.
+                        switch (typedArray.getInt(attribute, 3)) {
+                            // Parent.
+                            case 1:
+                                openDirection = OpenDirection.TO_LEFT;
+                                break;
+                            // Left child.
+                            case 2:
+                                openDirection = OpenDirection.TO_RIGHT;
+                                break;
+                            // Right child.
+                            case 3:
+                                openDirection = OpenDirection.NONE;
+                                break;
+                        }
+                        break;
+
+                    case R.styleable.UserViewWrapperAttrs_outside_move:
+                        // Get outside move ability from xml attribute.
+                        isViewCanBeMovedOutsideScreen = typedArray.getBoolean(attribute, false);
+                        break;
+
+                    case R.styleable.UserViewWrapperAttrs_move_direction:
+                        // Get move type from xml attribute.
+                        switch (typedArray.getInt(attribute, 3)) {
+                            // Parent.
+                            case 1:
+                                moveDirection = MoveDirection.UP;
+                                break;
+                            // Left child.
+                            case 2:
+                                moveDirection = MoveDirection.DOWN;
+                                break;
+                            // Right child.
+                            case 3:
+                                moveDirection = MoveDirection.NONE;
+                                break;
+                        }
+                        break;
+                }
             }
 
         }
@@ -628,8 +708,6 @@ public class UserViewWrapper extends FrameLayout {
 
         // Register self as listener for messages from other wrappers.
         sWrappers.add(this);
-
-        isViewCanBeMovedOutsideScreen = false;
     }
 
 

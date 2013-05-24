@@ -5,9 +5,7 @@
               android:layout_width="fill_parent"
               android:layout_height="fill_parent"
               android:weightSum="4"
-              android:paddingLeft="@dimen/main_screen_padding"
-              android:paddingRight="@dimen/main_screen_padding"
-              android:paddingTop="@dimen/main_screen_padding"
+              android:padding="@dimen/main_screen_padding"
               android:background="@color/google_now_background">
 
     <!-- Parent view. -->
@@ -17,7 +15,11 @@
             android:layout_height="0dip"
             android:layout_weight="2"
             android:layout_marginBottom="8dip"
-            custom:user_type="parent">
+
+            custom:user_type="parent"
+            custom:open_direction="none"
+            custom:outside_move="false"
+            custom:move_direction="down">
 
         <!-- Parent background view -->
         <pl.modrakowski.android.UserBackgroundView
@@ -52,7 +54,11 @@
             android:layout_height="0dip"
             android:layout_weight="1"
             android:layout_marginBottom="8dip"
-            custom:user_type="leftChild">
+
+            custom:user_type="leftChild"
+            custom:open_direction="left"
+            custom:outside_move="true"
+            custom:move_direction="up">
 
         <pl.modrakowski.android.UserBackgroundView
                 android:layout_width="match_parent"
@@ -84,7 +90,11 @@
             android:layout_width="match_parent"
             android:layout_height="0dip"
             android:layout_weight="1"
-            custom:user_type="rightChild">
+
+            custom:user_type="rightChild"
+            custom:open_direction="right"
+            custom:outside_move="false"
+            custom:move_direction="up">
 
         <pl.modrakowski.android.UserBackgroundView
                 android:layout_width="match_parent"
@@ -114,7 +124,8 @@
     <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:visibility="gone">
 
         <Button
                 android:id="@+id/to_left"
