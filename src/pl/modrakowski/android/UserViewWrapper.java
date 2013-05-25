@@ -566,10 +566,9 @@ public class UserViewWrapper extends FrameLayout {
                         }
                         break;
                     case BOTH:
-
+                        // Nothing.
                         break;
                     case NONE:
-                        // Nothing.
                         dy = 0;
                         break;
                 }
@@ -620,55 +619,53 @@ public class UserViewWrapper extends FrameLayout {
 
 
     private void swipeAnimation(final View swipeView, ValueAnimator.AnimatorUpdateListener animatorListener, Animator.AnimatorListener listener, float translation) {
-        ObjectAnimator applyTranslationX = ObjectAnimator.ofFloat(swipeView, "translationX", translation);
-        applyTranslationX.setDuration(animationDuration);
-        applyTranslationX.setEvaluator(new FloatEvaluator());
-        applyTranslationX.addUpdateListener(animatorListener);
-        applyTranslationX.addListener(listener);
-        applyTranslationX.start();
+        ObjectAnimator objectAnimator = createObjectAnimatorHelperX(swipeView, listener, translation);
+        objectAnimator.setEvaluator(new FloatEvaluator());
+        objectAnimator.addUpdateListener(animatorListener);
+        objectAnimator.start();
     }
 
     private void cancelAnimation(final View swipeView, ValueAnimator.AnimatorUpdateListener animatorListener, Animator.AnimatorListener listener, float translation) {
-        ObjectAnimator cancelTranslationX = ObjectAnimator.ofFloat(swipeView, "translationX", translation);
-        cancelTranslationX.setDuration(animationDuration);
+        ObjectAnimator cancelTranslationX = createObjectAnimatorHelperX(swipeView, listener, translation);
         cancelTranslationX.addUpdateListener(animatorListener);
         cancelTranslationX.setEvaluator(new FloatEvaluator());
-        cancelTranslationX.addListener(listener);
         cancelTranslationX.start();
     }
 
     private void moveViewBackToOriginalPlace(final View view, Animator.AnimatorListener listener, float translation) {
-        ObjectAnimator cancelTranslationX = ObjectAnimator.ofFloat(view, "translationY", translation);
-        cancelTranslationX.setDuration(animationDuration);
-        cancelTranslationX.addListener(listener);
-        cancelTranslationX.start();
+        createObjectAnimatorHelperY(view, listener, translation).start();
     }
 
     private void moveViewBackToOriginalPlaceFrom(final View view, float from) {
-        ObjectAnimator cancelTranslationX = ObjectAnimator.ofFloat(view, "translationY", from, 0);
-        cancelTranslationX.setDuration(animationDuration);
-        cancelTranslationX.addListener(new BetterAnimatorListener() {
+        createObjectAnimatorHelperY(view, new BetterAnimatorListener() {
             @Override
             public void onAnimationStart(Animator animator) {
                 super.onAnimationStart(animator);
                 sendMsgToRestOfWrappers(CallbackMsg.SET_VISIBLE, true);
             }
-        });
-        cancelTranslationX.start();
+        }, from, 0).start();
     }
 
     private void moveViewOutsideTopOfScreen(final View view, Animator.AnimatorListener listener) {
-        ObjectAnimator cancelTranslationX = ObjectAnimator.ofFloat(view, "translationY", -1500);
-        cancelTranslationX.setDuration(animationDuration);
-        cancelTranslationX.addListener(listener);
-        cancelTranslationX.start();
+        createObjectAnimatorHelperY(view, listener, -1500).start();
     }
 
     private void moveViewOutsideBottomOfScreen(final View view, Animator.AnimatorListener listener) {
-        ObjectAnimator cancelTranslationX = ObjectAnimator.ofFloat(view, "translationY", 1500);
-        cancelTranslationX.setDuration(animationDuration);
-        cancelTranslationX.addListener(listener);
-        cancelTranslationX.start();
+        createObjectAnimatorHelperY(view, listener, 1500).start();
+    }
+
+    private ObjectAnimator createObjectAnimatorHelperY(final View view, Animator.AnimatorListener listener, float... values) {
+        ObjectAnimator objectAnimator = ObjectAnimator.ofFloat(view, "translationY", values);
+        objectAnimator.setDuration(animationDuration);
+        objectAnimator.addListener(listener);
+        return objectAnimator;
+    }
+
+    private ObjectAnimator createObjectAnimatorHelperX(final View view, Animator.AnimatorListener listener, float... values) {
+        ObjectAnimator objectAnimator = ObjectAnimator.ofFloat(view, "translationX", values);
+        objectAnimator.setDuration(animationDuration);
+        objectAnimator.addListener(listener);
+        return objectAnimator;
     }
 
 
