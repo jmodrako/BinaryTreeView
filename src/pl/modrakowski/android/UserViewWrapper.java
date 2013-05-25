@@ -25,6 +25,14 @@ import java.util.ArrayList;
  */
 public class UserViewWrapper extends FrameLayout {
 
+    public static interface CallbackMoveUp {
+        public void callbackUp(ViewGroup backgroundView, ViewGroup foregroundView);
+    }
+
+    public static interface CallbackMoveDown {
+        public void callbackDown(ViewGroup backgroundView, ViewGroup foregroundView);
+    }
+
     public static enum WrapperUserType {
         LEFT_CHILD, RIGHT_CHILD, PARENT
     }
@@ -53,14 +61,26 @@ public class UserViewWrapper extends FrameLayout {
     private OpenDirection openDirection;
     private MoveDirection moveDirection;
 
+    private CallbackMoveUp callbackMoveUp;
+    private CallbackMoveDown callbackMoveDown;
+
     private long animationDuration;
-    private long openThresholdPx;
-    private long closeThresholdPx;
     private long scaledTouchSlope;
     private long mainScreenPaddingTop;
 
+    private long openThresholdPx;
+    private long closeThresholdPx;
+    private long callbackThreshold;
+    private long goUpThreshold;
+    private long goDownThreshold;
+
     private boolean isForegroundViewIsOpen;
     private boolean isViewCanBeMovedOutsideScreen;
+
+    // Flag is use to determine is threshold to go UP was achieve.
+    private boolean isGoUpThresholdAchieved;
+    // Flag is use to determine is threshold to go DOWN was achieve.
+    private boolean isGoDownThresholdAchieved;
 
     private int mDownX;
     private int mDownY;
@@ -97,6 +117,12 @@ public class UserViewWrapper extends FrameLayout {
                 case IDLE:
                     setCurrentWrapperState(determineWrapperState(event));
                     //Browse.Logger.i("determineWrapperState: " + currentWrapperState);
+
+                    // Watch for wrapper state changes.
+                    // IDLE --> VERTICAL_MODE
+                    if (previousWrapperState.equals(WrapperState.IDLE) && currentWrapperState.equals(WrapperState.VERTICAL_MOVE)) {
+                        sendMsgToRestOfWrappers(CallbackMsg.SET_INVISIBLE, false);
+                    }
                     break;
 
                 case VERTICAL_MOVE:
@@ -195,6 +221,16 @@ public class UserViewWrapper extends FrameLayout {
         isViewCanBeMovedOutsideScreen = viewCanBeMovedOutsideScreen;
     }
 
+
+    public void setCallbackMoveUp(CallbackMoveUp callbackMoveUp) {
+        this.callbackMoveUp = callbackMoveUp;
+    }
+
+    public void setCallbackMoveDown(CallbackMoveDown callbackMoveDown) {
+        this.callbackMoveDown = callbackMoveDown;
+    }
+
+
     private void setForegroundViewIsOpen(boolean foregroundViewIsOpen) {
         isForegroundViewIsOpen = foregroundViewIsOpen;
         userBackgroundView.setEnableViews(foregroundViewIsOpen);
@@ -211,11 +247,49 @@ public class UserViewWrapper extends FrameLayout {
 
         switch (callbackMsg) {
             case CallbackMsg.SET_INVISIBLE:
+                Browse.Logger.i("SET_INVISIBLE");
                 setVisibility(View.INVISIBLE);
                 break;
+
             case CallbackMsg.SET_VISIBLE:
+                Browse.Logger.i("SET_VISIBLE");
                 setVisibility(View.VISIBLE);
                 break;
+
+            case CallbackMsg.MOVEMENT_THRESHOLD_UP_ACHIEVED:
+                Browse.Logger.i("MOVEMENT_THRESHOLD_UP_ACHIEVED");
+                if (callbackMoveUp != null) {
+                    callbackMoveUp.callbackUp(userBackgroundView, userForegroundView);
+                }
+                break;
+
+            case CallbackMsg.MOVEMENT_THRESHOLD_DOWN_ACHIEVED:
+                Browse.Logger.i("MOVEMENT_THRESHOLD_DOWN_ACHIEVED");
+                if (callbackMoveDown != null) {
+                    callbackMoveDown.callbackDown(userBackgroundView, userForegroundView);
+                }
+                break;
+
+            case CallbackMsg.LEVEL_UP:
+                Browse.Logger.i("LEVEL_UP");
+                break;
+
+            case CallbackMsg.LEVEL_DOWN:
+                Browse.Logger.i("LEVEL_DOWN");
+                break;
+
+            case CallbackMsg.MOVE_TO_ORIGINAL_PLACE_FROM_BOTTOM:
+                int fromBottom = ((ViewGroup) getParent()).getMeasuredHeight() + getTop();
+                Browse.Logger.i("MOVE_TO_ORIGINAL_PLACE_FROM_BOTTOM");
+                moveViewBackToOriginalPlaceFrom(this, fromBottom);
+                break;
+
+            case CallbackMsg.MOVE_TO_ORIGINAL_PLACE_FROM_TOP:
+                int fromTop = ((ViewGroup) getParent()).getMeasuredHeight() + getTop();
+                Browse.Logger.i("MOVE_TO_ORIGINAL_PLACE_FROM_TOP");
+                moveViewBackToOriginalPlaceFrom(this, -fromTop);
+                break;
+
         }
 
     }
@@ -226,9 +300,9 @@ public class UserViewWrapper extends FrameLayout {
      *
      * @param callbackMsg What kind of message will be send.
      */
-    private void sendMsgToRestOfWrappers(int callbackMsg) {
+    private void sendMsgToRestOfWrappers(int callbackMsg, boolean forAll) {
         for (UserViewWrapper userViewWrapper : sWrappers) {
-            if (!userViewWrapper.wrapperUserType.equals(wrapperUserType)) {
+            if (forAll || !userViewWrapper.wrapperUserType.equals(wrapperUserType)) {
                 userViewWrapper.callbackFromOtherWrapperViews(callbackMsg);
             }
         }
@@ -272,15 +346,11 @@ public class UserViewWrapper extends FrameLayout {
                                 }
                             };
                             BetterAnimatorListener animatorListener = new BetterAnimatorListener() {
-                                @Override
-                                public void onAnimationStart(Animator animator) {
-                                    setCurrentWrapperState(WrapperState.ANIMATING);
-                                }
 
                                 @Override
                                 public void onAnimationEnd(Animator animator) {
+                                    super.onAnimationEnd(animator);
                                     setForegroundViewIsOpen(true);
-                                    setCurrentWrapperState(WrapperState.IDLE);
                                 }
                             };
                             cancelAnimation(userForegroundView, updateListener, animatorListener, -userForegroundView.getMeasuredWidth());
@@ -292,15 +362,11 @@ public class UserViewWrapper extends FrameLayout {
                                 }
                             };
                             BetterAnimatorListener animatorListener = new BetterAnimatorListener() {
-                                @Override
-                                public void onAnimationStart(Animator animator) {
-                                    setCurrentWrapperState(WrapperState.ANIMATING);
-                                }
 
                                 @Override
                                 public void onAnimationEnd(Animator animator) {
+                                    super.onAnimationEnd(animator);
                                     setForegroundViewIsOpen(false);
-                                    setCurrentWrapperState(WrapperState.IDLE);
                                 }
                             };
                             swipeAnimation(userForegroundView, updateListener, animatorListener, 0);
@@ -315,15 +381,11 @@ public class UserViewWrapper extends FrameLayout {
                                 }
                             };
                             BetterAnimatorListener animatorListener = new BetterAnimatorListener() {
-                                @Override
-                                public void onAnimationStart(Animator animator) {
-                                    setCurrentWrapperState(WrapperState.ANIMATING);
-                                }
 
                                 @Override
                                 public void onAnimationEnd(Animator animator) {
+                                    super.onAnimationEnd(animator);
                                     setForegroundViewIsOpen(false);
-                                    setCurrentWrapperState(WrapperState.IDLE);
                                 }
                             };
                             swipeAnimation(userForegroundView, updateListener, animatorListener, 0);
@@ -337,15 +399,11 @@ public class UserViewWrapper extends FrameLayout {
                                 }
                             };
                             BetterAnimatorListener animatorListener = new BetterAnimatorListener() {
-                                @Override
-                                public void onAnimationStart(Animator animator) {
-                                    setCurrentWrapperState(WrapperState.ANIMATING);
-                                }
 
                                 @Override
                                 public void onAnimationEnd(Animator animator) {
+                                    super.onAnimationEnd(animator);
                                     setForegroundViewIsOpen(true);
-                                    setCurrentWrapperState(WrapperState.IDLE);
                                 }
                             };
                             cancelAnimation(userForegroundView, updateListener, animatorListener, userForegroundView.getMeasuredWidth()
@@ -394,15 +452,11 @@ public class UserViewWrapper extends FrameLayout {
                                 }
                             };
                             BetterAnimatorListener animatorListener = new BetterAnimatorListener() {
-                                @Override
-                                public void onAnimationStart(Animator animator) {
-                                    setCurrentWrapperState(WrapperState.ANIMATING);
-                                }
 
                                 @Override
                                 public void onAnimationEnd(Animator animator) {
+                                    super.onAnimationEnd(animator);
                                     setForegroundViewIsOpen(true);
-                                    setCurrentWrapperState(WrapperState.IDLE);
                                 }
                             };
                             swipeAnimation(userForegroundView, updateListener, animatorListener, -userForegroundView.getMeasuredWidth());
@@ -415,14 +469,9 @@ public class UserViewWrapper extends FrameLayout {
                             };
                             BetterAnimatorListener animatorListener = new BetterAnimatorListener() {
                                 @Override
-                                public void onAnimationStart(Animator animator) {
-                                    setCurrentWrapperState(WrapperState.ANIMATING);
-                                }
-
-                                @Override
                                 public void onAnimationEnd(Animator animator) {
+                                    super.onAnimationEnd(animator);
                                     setForegroundViewIsOpen(false);
-                                    setCurrentWrapperState(WrapperState.IDLE);
                                 }
                             };
                             cancelAnimation(userForegroundView, updateListener, animatorListener, 0);
@@ -437,15 +486,11 @@ public class UserViewWrapper extends FrameLayout {
                                 }
                             };
                             BetterAnimatorListener animatorListener = new BetterAnimatorListener() {
-                                @Override
-                                public void onAnimationStart(Animator animator) {
-                                    setCurrentWrapperState(WrapperState.ANIMATING);
-                                }
 
                                 @Override
                                 public void onAnimationEnd(Animator animator) {
+                                    super.onAnimationEnd(animator);
                                     setForegroundViewIsOpen(true);
-                                    setCurrentWrapperState(WrapperState.IDLE);
                                 }
 
                             };
@@ -459,14 +504,9 @@ public class UserViewWrapper extends FrameLayout {
                             };
                             BetterAnimatorListener animatorListener = new BetterAnimatorListener() {
                                 @Override
-                                public void onAnimationStart(Animator animator) {
-                                    setCurrentWrapperState(WrapperState.ANIMATING);
-                                }
-
-                                @Override
                                 public void onAnimationEnd(Animator animator) {
+                                    super.onAnimationEnd(animator);
                                     setForegroundViewIsOpen(false);
-                                    setCurrentWrapperState(WrapperState.IDLE);
                                 }
                             };
                             cancelAnimation(userForegroundView, updateListener, animatorListener, 0);
@@ -500,11 +540,29 @@ public class UserViewWrapper extends FrameLayout {
                     case UP:
                         if (Math.signum(dy) != -1) {
                             return;
+                        } else {
+                            if (Math.abs(dy) > callbackThreshold) {
+                                if (!isGoUpThresholdAchieved) {
+                                    sendMsgToRestOfWrappers(CallbackMsg.MOVEMENT_THRESHOLD_UP_ACHIEVED, false);
+                                    isGoUpThresholdAchieved = true;
+                                }
+                            } else {
+                                isGoUpThresholdAchieved = false;
+                            }
                         }
                         break;
                     case DOWN:
                         if (Math.signum(dy) != 1) {
                             return;
+                        } else {
+                            if (Math.abs(dy) > callbackThreshold) {
+                                if (!isGoDownThresholdAchieved) {
+                                    sendMsgToRestOfWrappers(CallbackMsg.MOVEMENT_THRESHOLD_DOWN_ACHIEVED, false);
+                                    isGoDownThresholdAchieved = true;
+                                }
+                            } else {
+                                isGoDownThresholdAchieved = false;
+                            }
                         }
                         break;
                     case BOTH:
@@ -522,23 +580,38 @@ public class UserViewWrapper extends FrameLayout {
             case MotionEvent.ACTION_UP:
                 // Below workaround for handle quick show wrapper when it can be move.
                 // Previously was like that, view can't move, other wrappers was visible in duration time,
-                // which was bad.§
+                // which was bad.
                 if (ViewHelper.getTranslationY(this) != 0) {
-                    moveViewBackToOriginalPlace(this, new BetterAnimatorListener() {
-                        @Override
-                        public void onAnimationStart(Animator animator) {
-                            setCurrentWrapperState(WrapperState.ANIMATING);
-                        }
-
-                        @Override
-                        public void onAnimationEnd(Animator animator) {
-                            setCurrentWrapperState(WrapperState.IDLE);
-                            sendMsgToRestOfWrappers(CallbackMsg.SET_VISIBLE);
-                        }
-                    }, 0);
+                    if (isGoUpThresholdAchieved) {
+                        moveViewOutsideTopOfScreen(this, new BetterAnimatorListener() {
+                            @Override
+                            public void onAnimationEnd(Animator animator) {
+                                super.onAnimationEnd(animator);
+                                sendMsgToRestOfWrappers(CallbackMsg.MOVE_TO_ORIGINAL_PLACE_FROM_BOTTOM, true);
+                            }
+                        });
+                        sendMsgToRestOfWrappers(CallbackMsg.LEVEL_UP, false);
+                    } else if (isGoDownThresholdAchieved) {
+                        moveViewOutsideBottomOfScreen(this, new BetterAnimatorListener() {
+                            @Override
+                            public void onAnimationEnd(Animator animator) {
+                                super.onAnimationEnd(animator);
+                                sendMsgToRestOfWrappers(CallbackMsg.MOVE_TO_ORIGINAL_PLACE_FROM_TOP, true);
+                            }
+                        });
+                        sendMsgToRestOfWrappers(CallbackMsg.LEVEL_DOWN, false);
+                    } else {
+                        moveViewBackToOriginalPlace(this, new BetterAnimatorListener() {
+                            @Override
+                            public void onAnimationEnd(Animator animator) {
+                                super.onAnimationEnd(animator);
+                                sendMsgToRestOfWrappers(CallbackMsg.SET_VISIBLE, false);
+                            }
+                        }, 0);
+                    }
                 } else {
                     setCurrentWrapperState(WrapperState.IDLE);
-                    sendMsgToRestOfWrappers(CallbackMsg.SET_VISIBLE);
+                    sendMsgToRestOfWrappers(CallbackMsg.SET_VISIBLE, false);
                 }
                 break;
         }
@@ -566,6 +639,33 @@ public class UserViewWrapper extends FrameLayout {
 
     private void moveViewBackToOriginalPlace(final View view, Animator.AnimatorListener listener, float translation) {
         ObjectAnimator cancelTranslationX = ObjectAnimator.ofFloat(view, "translationY", translation);
+        cancelTranslationX.setDuration(animationDuration);
+        cancelTranslationX.addListener(listener);
+        cancelTranslationX.start();
+    }
+
+    private void moveViewBackToOriginalPlaceFrom(final View view, float from) {
+        ObjectAnimator cancelTranslationX = ObjectAnimator.ofFloat(view, "translationY", from, 0);
+        cancelTranslationX.setDuration(animationDuration);
+        cancelTranslationX.addListener(new BetterAnimatorListener() {
+            @Override
+            public void onAnimationStart(Animator animator) {
+                super.onAnimationStart(animator);
+                sendMsgToRestOfWrappers(CallbackMsg.SET_VISIBLE, true);
+            }
+        });
+        cancelTranslationX.start();
+    }
+
+    private void moveViewOutsideTopOfScreen(final View view, Animator.AnimatorListener listener) {
+        ObjectAnimator cancelTranslationX = ObjectAnimator.ofFloat(view, "translationY", -1500);
+        cancelTranslationX.setDuration(animationDuration);
+        cancelTranslationX.addListener(listener);
+        cancelTranslationX.start();
+    }
+
+    private void moveViewOutsideBottomOfScreen(final View view, Animator.AnimatorListener listener) {
+        ObjectAnimator cancelTranslationX = ObjectAnimator.ofFloat(view, "translationY", 1500);
         cancelTranslationX.setDuration(animationDuration);
         cancelTranslationX.addListener(listener);
         cancelTranslationX.start();
@@ -605,12 +705,6 @@ public class UserViewWrapper extends FrameLayout {
 
     private void setCurrentWrapperState(WrapperState wrapperState) {
         currentWrapperState = wrapperState;
-
-        // Watch for wrapper state changes.
-        // IDLE --> VERTICAL_MODE
-        if (previousWrapperState.equals(WrapperState.IDLE) && currentWrapperState.equals(WrapperState.VERTICAL_MOVE)) {
-            sendMsgToRestOfWrappers(CallbackMsg.SET_INVISIBLE);
-        }
     }
 
     private void setPreviousWrapperState(WrapperState wrapperState) {
@@ -724,10 +818,13 @@ public class UserViewWrapper extends FrameLayout {
 
         // Initialize constants from resources.
         animationDuration = getResources().getInteger(R.integer.swipe_in_out_duration_ms);
-        openThresholdPx = getResources().getInteger(R.integer.open_threshold_px);
-        closeThresholdPx = getResources().getInteger(R.integer.close_threshold_px);
         scaledTouchSlope = getResources().getInteger(R.integer.scaled_touch_slope_px);
         mainScreenPaddingTop = getResources().getDimensionPixelSize(R.dimen.main_screen_padding);
+        openThresholdPx = getResources().getInteger(R.integer.open_threshold_px);
+        closeThresholdPx = getResources().getInteger(R.integer.close_threshold_px);
+        callbackThreshold = getResources().getInteger(R.integer.callback_threshold_px);
+        goDownThreshold = getResources().getInteger(R.integer.go_down_threshold_px);
+        goUpThreshold = getResources().getInteger(R.integer.go_up_threshold_px);
 
         // Register self as listener for messages from other wrappers.
         sWrappers.add(this);
@@ -737,16 +834,16 @@ public class UserViewWrapper extends FrameLayout {
     /**
      * Helper class to avoid create useless methods in base Listener interface.
      */
-    private static class BetterAnimatorListener implements Animator.AnimatorListener {
+    private class BetterAnimatorListener implements Animator.AnimatorListener {
 
         @Override
         public void onAnimationStart(Animator animator) {
-
+            setCurrentWrapperState(WrapperState.ANIMATING);
         }
 
         @Override
         public void onAnimationEnd(Animator animator) {
-
+            setCurrentWrapperState(WrapperState.IDLE);
         }
 
         @Override
@@ -768,5 +865,15 @@ public class UserViewWrapper extends FrameLayout {
         public static final int SET_INVISIBLE = 1 << 1;
         // Tell others wrappers to change itself visibility to VISIBLE.
         public static final int SET_VISIBLE = 1 << 2;
+        // Tell others wrappers that some threshold was achieved.
+        public static final int MOVEMENT_THRESHOLD_UP_ACHIEVED = 1 << 3;
+        public static final int MOVEMENT_THRESHOLD_DOWN_ACHIEVED = 1 << 4;
+
+        public static final int LEVEL_UP = 1 << 5;
+        public static final int LEVEL_DOWN = 1 << 6;
+
+        public static final int MOVE_TO_ORIGINAL_PLACE_FROM_TOP = 1 << 7;
+        public static final int MOVE_TO_ORIGINAL_PLACE_FROM_BOTTOM = 1 << 8;
+
     }
 }

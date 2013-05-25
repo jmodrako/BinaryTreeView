@@ -2,6 +2,7 @@ package pl.modrakowski.android;
 
 import android.app.Activity;
 import android.util.Log;
+import android.view.ViewGroup;
 import android.widget.Button;
 import com.google.analytics.tracking.android.EasyTracker;
 import com.google.analytics.tracking.android.GAServiceManager;
@@ -33,7 +34,26 @@ public class Browse extends Activity {
 
     @AfterViews
     protected void afterViews() {
+        leftLayoutWrapper.setCallbackMoveUp(new UserViewWrapper.CallbackMoveUp() {
+            @Override
+            public void callbackUp(ViewGroup backgroundView, ViewGroup foregroundView) {
+                //((TextView) foregroundView.findViewById(R.id.test_left_child_fore_tv)).setText("Zmiana tekstu. Lewy.");
+            }
+        });
 
+        rightLayoutWrapper.setCallbackMoveUp(new UserViewWrapper.CallbackMoveUp() {
+            @Override
+            public void callbackUp(ViewGroup backgroundView, ViewGroup foregroundView) {
+                //((TextView) foregroundView.findViewById(R.id.test_right_child_fore_tv)).setText("Zmiana tekstu. Prawy.");
+            }
+        });
+
+        parentLayoutWrapper.setCallbackMoveUp(new UserViewWrapper.CallbackMoveUp() {
+            @Override
+            public void callbackUp(ViewGroup backgroundView, ViewGroup foregroundView) {
+                //((TextView) foregroundView.findViewById(R.id.test_parent_child_fore_tv)).setText("Zmiana tekstu. Parent.");
+            }
+        });
     }
 
     @Click(R.id.to_left)

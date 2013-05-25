@@ -6,6 +6,7 @@
              android:layout_height="match_parent">
 
     <pl.modrakowski.android.CustomFontTextView
+            android:id="@+id/test_right_child_fore_tv"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:text="Right Child Foreground Layout"
