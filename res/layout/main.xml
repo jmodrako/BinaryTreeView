@@ -57,7 +57,7 @@
 
             custom:user_type="leftChild"
             custom:open_direction="left"
-            custom:outside_move="true"
+            custom:outside_move="false"
             custom:move_direction="up">
 
         <pl.modrakowski.android.UserBackgroundView

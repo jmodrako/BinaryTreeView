@@ -3,23 +3,13 @@ package pl.modrakowski.android;
 import android.app.Activity;
 import android.util.Log;
 import android.widget.Button;
+import com.google.analytics.tracking.android.EasyTracker;
+import com.google.analytics.tracking.android.GAServiceManager;
 import com.googlecode.androidannotations.annotations.*;
 
 @NoTitle
 @EActivity(R.layout.main)
 public class Browse extends Activity {
-
-    /*@ViewById(R.id.background_ctn)
-    protected CuriousContainer background;
-
-    @ViewById(R.id.foreground_ctn)
-    protected CuriousContainer foreground;*/
-
-    /*@AfterViews
-    protected void afterViews() {
-        *//*background.setTAG("background");
-        foreground.setTAG("foreground");*//*
-    }*/
 
     @ViewById(R.id.parent)
     protected UserViewWrapper parentLayoutWrapper;
@@ -43,13 +33,7 @@ public class Browse extends Activity {
 
     @AfterViews
     protected void afterViews() {
-        /*TextView parentText = (TextView) parentLayoutWrapper.findViewById(R.id.name);
-        TextView leftText = (TextView) leftLayoutWrapper.findViewById(R.id.name);
-        TextView rightText = (TextView) rightLayoutWrapper.findViewById(R.id.name);
 
-        parentText.setText("PARENT");
-        leftText.setText("LEFT");
-        rightText.setText("RIGHT");*/
     }
 
     @Click(R.id.to_left)
@@ -71,6 +55,20 @@ public class Browse extends Activity {
         parentLayoutWrapper.startPromptAnimation(false, 100);
         leftLayoutWrapper.startPromptAnimation(false, 130);
         rightLayoutWrapper.startPromptAnimation(false, 160);
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        EasyTracker.getInstance().activityStart(this);
+        EasyTracker.getTracker().sendView("/Browse");
+        GAServiceManager.getInstance().dispatch();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        EasyTracker.getInstance().activityStop(this);
     }
 
     public static class Logger {
