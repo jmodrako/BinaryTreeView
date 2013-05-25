@@ -584,22 +584,22 @@ public class UserViewWrapper extends FrameLayout {
                 // which was bad.
                 if (ViewHelper.getTranslationY(this) != 0) {
                     if (isGoUpThresholdAchieved) {
-                        moveViewOutsideTopOfScreen(this, new BetterAnimatorListener() {
+                        createObjectAnimatorHelperY(this, new BetterAnimatorListener() {
                             @Override
                             public void onAnimationEnd(Animator animator) {
                                 super.onAnimationEnd(animator);
                                 sendMsgToRestOfWrappers(CallbackMsg.MOVE_TO_ORIGINAL_PLACE_FROM_BOTTOM, true);
                             }
-                        });
+                        }, -1500).start();
                         sendMsgToRestOfWrappers(CallbackMsg.LEVEL_UP, false);
                     } else if (isGoDownThresholdAchieved) {
-                        moveViewOutsideBottomOfScreen(this, new BetterAnimatorListener() {
+                        createObjectAnimatorHelperY(this, new BetterAnimatorListener() {
                             @Override
                             public void onAnimationEnd(Animator animator) {
                                 super.onAnimationEnd(animator);
                                 sendMsgToRestOfWrappers(CallbackMsg.MOVE_TO_ORIGINAL_PLACE_FROM_TOP, true);
                             }
-                        });
+                        }, 1500).start();
                         sendMsgToRestOfWrappers(CallbackMsg.LEVEL_DOWN, false);
                     } else {
                         moveViewBackToOriginalPlace(this, new BetterAnimatorListener() {
@@ -648,13 +648,6 @@ public class UserViewWrapper extends FrameLayout {
         }, from, 0).start();
     }
 
-    private void moveViewOutsideTopOfScreen(final View view, Animator.AnimatorListener listener) {
-        createObjectAnimatorHelperY(view, listener, -1500).start();
-    }
-
-    private void moveViewOutsideBottomOfScreen(final View view, Animator.AnimatorListener listener) {
-        createObjectAnimatorHelperY(view, listener, 1500).start();
-    }
 
     private ObjectAnimator createObjectAnimatorHelperY(final View view, Animator.AnimatorListener listener, float... values) {
         ObjectAnimator objectAnimator = ObjectAnimator.ofFloat(view, "translationY", values);
@@ -817,7 +810,7 @@ public class UserViewWrapper extends FrameLayout {
 
         // Initialize constants from resources.
         slideUpDownViews = getResources().getInteger(R.integer.slide_up_down_views_ms);
-        openCloseViewDuration =getResources().getInteger(R.integer.open_close_view_ms);
+        openCloseViewDuration = getResources().getInteger(R.integer.open_close_view_ms);
         scaledTouchSlope = getResources().getInteger(R.integer.scaled_touch_slope_px);
         mainScreenPaddingTop = getResources().getDimensionPixelSize(R.dimen.main_screen_padding);
         openThresholdPx = getResources().getInteger(R.integer.open_threshold_px);
