@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <integer name="swipe_in_out_duration_ms">660</integer>
+    <integer name="slide_up_down_views_ms">660</integer>
+    <integer name="open_close_view_ms">300</integer>
+
     <integer name="open_threshold_px">200</integer>
     <integer name="close_threshold_px">200</integer>
     <integer name="scaled_touch_slope_px">15</integer>

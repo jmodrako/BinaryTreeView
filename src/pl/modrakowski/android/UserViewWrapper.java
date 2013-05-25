@@ -64,7 +64,9 @@ public class UserViewWrapper extends FrameLayout {
     private CallbackMoveUp callbackMoveUp;
     private CallbackMoveDown callbackMoveDown;
 
-    private long animationDuration;
+    private long slideUpDownViews;
+    private long openCloseViewDuration;
+
     private long scaledTouchSlope;
     private long mainScreenPaddingTop;
 
@@ -285,7 +287,7 @@ public class UserViewWrapper extends FrameLayout {
                 break;
 
             case CallbackMsg.MOVE_TO_ORIGINAL_PLACE_FROM_TOP:
-                int fromTop = ((ViewGroup) getParent()).getMeasuredHeight() + getTop();
+                int fromTop = getMeasuredHeight() + getTop();
                 Browse.Logger.i("MOVE_TO_ORIGINAL_PLACE_FROM_TOP");
                 moveViewBackToOriginalPlaceFrom(this, -fromTop);
                 break;
@@ -656,14 +658,14 @@ public class UserViewWrapper extends FrameLayout {
 
     private ObjectAnimator createObjectAnimatorHelperY(final View view, Animator.AnimatorListener listener, float... values) {
         ObjectAnimator objectAnimator = ObjectAnimator.ofFloat(view, "translationY", values);
-        objectAnimator.setDuration(animationDuration);
+        objectAnimator.setDuration(slideUpDownViews);
         objectAnimator.addListener(listener);
         return objectAnimator;
     }
 
     private ObjectAnimator createObjectAnimatorHelperX(final View view, Animator.AnimatorListener listener, float... values) {
         ObjectAnimator objectAnimator = ObjectAnimator.ofFloat(view, "translationX", values);
-        objectAnimator.setDuration(animationDuration);
+        objectAnimator.setDuration(openCloseViewDuration);
         objectAnimator.addListener(listener);
         return objectAnimator;
     }
@@ -814,7 +816,8 @@ public class UserViewWrapper extends FrameLayout {
         }
 
         // Initialize constants from resources.
-        animationDuration = getResources().getInteger(R.integer.swipe_in_out_duration_ms);
+        slideUpDownViews = getResources().getInteger(R.integer.slide_up_down_views_ms);
+        openCloseViewDuration =getResources().getInteger(R.integer.open_close_view_ms);
         scaledTouchSlope = getResources().getInteger(R.integer.scaled_touch_slope_px);
         mainScreenPaddingTop = getResources().getDimensionPixelSize(R.dimen.main_screen_padding);
         openThresholdPx = getResources().getInteger(R.integer.open_threshold_px);
