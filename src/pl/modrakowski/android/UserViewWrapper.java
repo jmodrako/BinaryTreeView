@@ -88,6 +88,7 @@ public class UserViewWrapper extends FrameLayout {
     private int mDownY;
     private int mOriginalViewTop;
     private int mOriginalViewBottom;
+    private int mInterceptEventX;
 
     private float mCurentTransX;
 
@@ -110,7 +111,7 @@ public class UserViewWrapper extends FrameLayout {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        //Browse.Logger.i("Current state: " + currentWrapperState);
+        Browse.Logger.i("Current state: " + currentWrapperState);
 
         // We can handle touch events only when state is not ANIMATING.
         if (!currentWrapperState.equals(WrapperState.ANIMATING)) {
@@ -124,6 +125,22 @@ public class UserViewWrapper extends FrameLayout {
                     // IDLE --> VERTICAL_MODE
                     if (previousWrapperState.equals(WrapperState.IDLE) && currentWrapperState.equals(WrapperState.VERTICAL_MOVE)) {
                         sendMsgToRestOfWrappers(CallbackMsg.SET_INVISIBLE, false);
+                    } else if (previousWrapperState.equals(WrapperState.IDLE) && currentWrapperState.equals(WrapperState.HORIZONTAL_MOVE)) {
+                        // Adjustment for jank during opening.
+                        // Couse because mDownX was translated by scaledTouchSlope.
+                        if (openDirection.equals(OpenDirection.TO_LEFT)) {
+                            if (isForegroundViewIsOpen) {
+                                mDownX += scaledTouchSlope;
+                            } else {
+                                mDownX -= scaledTouchSlope;
+                            }
+                        } else if (openDirection.equals(OpenDirection.TO_RIGHT)) {
+                            if (isForegroundViewIsOpen) {
+                                mDownX -= scaledTouchSlope;
+                            } else {
+                                mDownX += scaledTouchSlope;
+                            }
+                        }
                     }
                     break;
 
@@ -152,6 +169,30 @@ public class UserViewWrapper extends FrameLayout {
         } else {
             return false;
         }
+    }
+
+    @Override
+    public boolean onInterceptTouchEvent(MotionEvent ev) {
+        // If foreground view is open then we must steal motion event,
+        // to watch out when we should start closing foreground view.
+        if (isForegroundViewIsOpen) {
+            switch (ev.getAction()) {
+                case MotionEvent.ACTION_DOWN:
+                    mInterceptEventX = (int) ev.getRawX();
+                    break;
+                case MotionEvent.ACTION_MOVE:
+                    if (Math.abs(ev.getRawX() - mInterceptEventX) > closeThresholdPx) {
+                        MotionEvent helper = MotionEvent.obtain(ev);
+                        helper.setAction(MotionEvent.ACTION_DOWN);
+                        onTouchEvent(helper);
+                        return true;
+                    } else {
+                        return false;
+                    }
+            }
+
+        }
+        return super.onInterceptTouchEvent(ev);
     }
 
     @Override
@@ -215,14 +256,6 @@ public class UserViewWrapper extends FrameLayout {
         openDirection = direction;
     }
 
-    public boolean isViewCanBeMovedOutsideScreen() {
-        return isViewCanBeMovedOutsideScreen;
-    }
-
-    public void setViewCanBeMovedOutsideScreen(boolean viewCanBeMovedOutsideScreen) {
-        isViewCanBeMovedOutsideScreen = viewCanBeMovedOutsideScreen;
-    }
-
 
     public void setCallbackMoveUp(CallbackMoveUp callbackMoveUp) {
         this.callbackMoveUp = callbackMoveUp;
@@ -249,46 +282,46 @@ public class UserViewWrapper extends FrameLayout {
 
         switch (callbackMsg) {
             case CallbackMsg.SET_INVISIBLE:
-                Browse.Logger.i("SET_INVISIBLE");
+//                Browse.Logger.i("SET_INVISIBLE");
                 setVisibility(View.INVISIBLE);
                 break;
 
             case CallbackMsg.SET_VISIBLE:
-                Browse.Logger.i("SET_VISIBLE");
+//                Browse.Logger.i("SET_VISIBLE");
                 setVisibility(View.VISIBLE);
                 break;
 
             case CallbackMsg.MOVEMENT_THRESHOLD_UP_ACHIEVED:
-                Browse.Logger.i("MOVEMENT_THRESHOLD_UP_ACHIEVED");
+//                Browse.Logger.i("MOVEMENT_THRESHOLD_UP_ACHIEVED");
                 if (callbackMoveUp != null) {
                     callbackMoveUp.callbackUp(userBackgroundView, userForegroundView);
                 }
                 break;
 
             case CallbackMsg.MOVEMENT_THRESHOLD_DOWN_ACHIEVED:
-                Browse.Logger.i("MOVEMENT_THRESHOLD_DOWN_ACHIEVED");
+//                Browse.Logger.i("MOVEMENT_THRESHOLD_DOWN_ACHIEVED");
                 if (callbackMoveDown != null) {
                     callbackMoveDown.callbackDown(userBackgroundView, userForegroundView);
                 }
                 break;
 
             case CallbackMsg.LEVEL_UP:
-                Browse.Logger.i("LEVEL_UP");
+//                Browse.Logger.i("LEVEL_UP");
                 break;
 
             case CallbackMsg.LEVEL_DOWN:
-                Browse.Logger.i("LEVEL_DOWN");
+//                Browse.Logger.i("LEVEL_DOWN");
                 break;
 
             case CallbackMsg.MOVE_TO_ORIGINAL_PLACE_FROM_BOTTOM:
                 int fromBottom = ((ViewGroup) getParent()).getMeasuredHeight() + getTop();
-                Browse.Logger.i("MOVE_TO_ORIGINAL_PLACE_FROM_BOTTOM");
+//                Browse.Logger.i("MOVE_TO_ORIGINAL_PLACE_FROM_BOTTOM");
                 moveViewBackToOriginalPlaceFrom(this, fromBottom);
                 break;
 
             case CallbackMsg.MOVE_TO_ORIGINAL_PLACE_FROM_TOP:
                 int fromTop = getMeasuredHeight() + getTop();
-                Browse.Logger.i("MOVE_TO_ORIGINAL_PLACE_FROM_TOP");
+//                Browse.Logger.i("MOVE_TO_ORIGINAL_PLACE_FROM_TOP");
                 moveViewBackToOriginalPlaceFrom(this, -fromTop);
                 break;
 
