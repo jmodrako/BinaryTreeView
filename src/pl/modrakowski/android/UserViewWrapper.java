@@ -124,6 +124,13 @@ public class UserViewWrapper extends FrameLayout {
                     // Watch for wrapper state changes.
                     // IDLE --> VERTICAL_MODE
                     if (previousWrapperState.equals(WrapperState.IDLE) && currentWrapperState.equals(WrapperState.VERTICAL_MOVE)) {
+                        // Adjustment for jank during swiping.
+                        // Couse because mDownY was translated by scaledTouchSlope.
+                        if (moveDirection.equals(MoveDirection.DOWN)) {
+                            mDownY += scaledTouchSlope;
+                        } else if (moveDirection.equals(MoveDirection.UP)) {
+                            mDownY -= scaledTouchSlope;
+                        }
                         sendMsgToRestOfWrappers(CallbackMsg.SET_INVISIBLE, false);
                     } else if (previousWrapperState.equals(WrapperState.IDLE) && currentWrapperState.equals(WrapperState.HORIZONTAL_MOVE)) {
                         // Adjustment for jank during opening.
