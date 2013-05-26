@@ -1,19 +1,86 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-             xmlns:custom="http://schemas.android.com/apk/res/pl.modrakowski.android"
-             android:layout_width="match_parent"
-             android:layout_height="match_parent">
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:custom="http://schemas.android.com/apk/res/pl.modrakowski.android"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:paddingLeft="8dip"
+                android:paddingTop="8dip">
+
+    <View
+            android:layout_width="match_parent"
+            android:layout_height="1dip"
+            android:background="@android:color/transparent"
+            android:layout_centerVertical="true"
+            android:id="@+id/view"/>
 
     <pl.modrakowski.android.CustomFontTextView
-            android:id="@+id/test_right_child_fore_tv"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:text="Right Child Foreground Layout"
+            android:id="@+id/test_left_first_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+
+            android:text="Kuba"
             android:textColor="@color/gray"
             android:textSize="@dimen/child_foreground_text_size"
             android:gravity="center"
 
-            custom:customFont="Roboto-Thin.ttf"/>
+            custom:customFont="Roboto-Thin.ttf"
+            android:layout_alignLeft="@+id/test_left_last_name"
+            android:layout_above="@+id/test_left_last_name"/>
 
-</FrameLayout>
+    <pl.modrakowski.android.CustomFontTextView
+            android:id="@+id/test_left_last_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+
+            android:text="Bogacki"
+            android:textColor="@color/gray"
+            android:textSize="@dimen/child_foreground_text_size"
+            android:gravity="center"
+
+            custom:customFont="Roboto-Thin.ttf"
+            android:layout_toRightOf="@+id/circular_imageview"
+            android:layout_centerVertical="true"/>
+
+    <pl.modrakowski.android.CustomFontTextView
+            android:id="@+id/test_left_stan_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+
+            android:text="Android Developer, @Implix"
+            android:textColor="@color/gray"
+            android:textSize="@dimen/background_text_size"
+            android:gravity="center"
+
+            custom:customFont="Roboto-Condensed.ttf"
+            android:layout_alignLeft="@+id/test_left_first_name"
+            android:layout_below="@+id/test_left_last_name"/>
+
+    <pl.modrakowski.android.CircularImageView
+            android:id="@+id/circular_imageview"
+            android:layout_width="100dip"
+            android:layout_height="100dip"
+            android:layout_gravity="center"
+            android:src="@drawable/kuba"
+            android:scaleType="centerInside"
+            android:layout_alignParentLeft="true"
+            android:layout_centerVertical="true"
+
+            android:layout_marginRight="8dip"/>
+
+    <pl.modrakowski.android.CustomFontTextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Right"
+            android:id="@+id/textView"
+            android:layout_alignRight="@+id/view"
+            android:layout_alignParentTop="true"
+            android:textColor="@color/gray"
+            android:background="@drawable/google_now_parent_foreground"
+            android:padding="5dip"
+            android:gravity="right"
+            custom:customFont="Roboto-Condensed.ttf"
+            android:textSize="@dimen/etykieta_txt_size"/>
+
+
+</RelativeLayout>

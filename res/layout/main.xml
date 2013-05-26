@@ -17,7 +17,7 @@
             android:layout_marginBottom="8dip"
 
             custom:user_type="parent"
-            custom:open_direction="none"
+            custom:open_direction="right"
             custom:outside_move="false"
             custom:move_direction="down">
 

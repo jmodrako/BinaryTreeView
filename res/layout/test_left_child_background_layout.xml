@@ -17,6 +17,7 @@
             custom:customFont="Roboto-Condensed.ttf"/>
 
     <Button
+            android:id="@+id/test_btn"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Button"

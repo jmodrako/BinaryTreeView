@@ -1,6 +1,8 @@
 package pl.modrakowski.android;
 
 import android.app.Activity;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.util.Log;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -26,6 +28,9 @@ public class Browse extends Activity {
 
     @ViewById(R.id.to_right)
     protected Button toRight;
+
+    @ViewById(R.id.test_btn)
+    Button testBtn;
 
     @AfterInject
     protected void afterInject() {
@@ -56,19 +61,11 @@ public class Browse extends Activity {
         });
     }
 
-    @Click(R.id.to_left)
+    @Click(R.id.test_btn)
     protected void onLeftClick() {
-        parentLayoutWrapper.setOpenDirection(UserViewWrapper.OpenDirection.TO_LEFT);
-        rightLayoutWrapper.setOpenDirection(UserViewWrapper.OpenDirection.TO_LEFT);
-        leftLayoutWrapper.setOpenDirection(UserViewWrapper.OpenDirection.TO_LEFT);
+        Logger.i("test button message...................");
     }
 
-    @Click(R.id.to_right)
-    protected void onRightClick() {
-        parentLayoutWrapper.setOpenDirection(UserViewWrapper.OpenDirection.TO_RIGHT);
-        rightLayoutWrapper.setOpenDirection(UserViewWrapper.OpenDirection.TO_RIGHT);
-        leftLayoutWrapper.setOpenDirection(UserViewWrapper.OpenDirection.TO_RIGHT);
-    }
 
     @Click(R.id.prompt)
     protected void onPromptClick() {

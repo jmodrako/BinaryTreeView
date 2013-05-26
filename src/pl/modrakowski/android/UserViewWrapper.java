@@ -33,6 +33,14 @@ public class UserViewWrapper extends FrameLayout {
         public void callbackDown(ViewGroup backgroundView, ViewGroup foregroundView);
     }
 
+    public static interface GoUpProgressListener {
+        public void goUpProgress(float progress);
+    }
+
+    public static interface GoDownProgressListener {
+        public void goDownProgress(float progress);
+    }
+
     public static enum WrapperUserType {
         LEFT_CHILD, RIGHT_CHILD, PARENT
     }
@@ -63,6 +71,9 @@ public class UserViewWrapper extends FrameLayout {
 
     private CallbackMoveUp callbackMoveUp;
     private CallbackMoveDown callbackMoveDown;
+
+    private GoUpProgressListener goUpProgressListener;
+    private GoDownProgressListener goDownProgressListener;
 
     private long slideUpDownViews;
     private long openCloseViewDuration;
@@ -111,7 +122,7 @@ public class UserViewWrapper extends FrameLayout {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        Browse.Logger.i("Current state: " + currentWrapperState);
+//        Browse.Logger.i("Current state: " + currentWrapperState);
 
         // We can handle touch events only when state is not ANIMATING.
         if (!currentWrapperState.equals(WrapperState.ANIMATING)) {
@@ -188,7 +199,7 @@ public class UserViewWrapper extends FrameLayout {
                     mInterceptEventX = (int) ev.getRawX();
                     break;
                 case MotionEvent.ACTION_MOVE:
-                    if (Math.abs(ev.getRawX() - mInterceptEventX) > closeThresholdPx) {
+                    if (Math.abs(ev.getRawX() - mInterceptEventX) > scaledTouchSlope) {
                         MotionEvent helper = MotionEvent.obtain(ev);
                         helper.setAction(MotionEvent.ACTION_DOWN);
                         onTouchEvent(helper);
@@ -273,6 +284,15 @@ public class UserViewWrapper extends FrameLayout {
     }
 
 
+    public void setGoUpProgressListener(GoUpProgressListener goUpProgressListener) {
+        this.goUpProgressListener = goUpProgressListener;
+    }
+
+    public void setGoDownProgressListener(GoDownProgressListener goDownProgressListener) {
+        this.goDownProgressListener = goDownProgressListener;
+    }
+
+
     private void setForegroundViewIsOpen(boolean foregroundViewIsOpen) {
         isForegroundViewIsOpen = foregroundViewIsOpen;
         userBackgroundView.setEnableViews(foregroundViewIsOpen);
@@ -299,25 +319,25 @@ public class UserViewWrapper extends FrameLayout {
                 break;
 
             case CallbackMsg.MOVEMENT_THRESHOLD_UP_ACHIEVED:
-//                Browse.Logger.i("MOVEMENT_THRESHOLD_UP_ACHIEVED");
+                Browse.Logger.i("MOVEMENT_THRESHOLD_UP_ACHIEVED");
                 if (callbackMoveUp != null) {
                     callbackMoveUp.callbackUp(userBackgroundView, userForegroundView);
                 }
                 break;
 
             case CallbackMsg.MOVEMENT_THRESHOLD_DOWN_ACHIEVED:
-//                Browse.Logger.i("MOVEMENT_THRESHOLD_DOWN_ACHIEVED");
+                Browse.Logger.i("MOVEMENT_THRESHOLD_DOWN_ACHIEVED");
                 if (callbackMoveDown != null) {
                     callbackMoveDown.callbackDown(userBackgroundView, userForegroundView);
                 }
                 break;
 
             case CallbackMsg.LEVEL_UP:
-//                Browse.Logger.i("LEVEL_UP");
+                Browse.Logger.i("LEVEL_UP");
                 break;
 
             case CallbackMsg.LEVEL_DOWN:
-//                Browse.Logger.i("LEVEL_DOWN");
+                Browse.Logger.i("LEVEL_DOWN");
                 break;
 
             case CallbackMsg.MOVE_TO_ORIGINAL_PLACE_FROM_BOTTOM:
@@ -494,7 +514,6 @@ public class UserViewWrapper extends FrameLayout {
                                 }
                             };
                             BetterAnimatorListener animatorListener = new BetterAnimatorListener() {
-
                                 @Override
                                 public void onAnimationEnd(Animator animator) {
                                     super.onAnimationEnd(animator);
@@ -589,6 +608,10 @@ public class UserViewWrapper extends FrameLayout {
                                     isGoUpThresholdAchieved = true;
                                 }
                             } else {
+                                // Notify listener for go up progress.
+                                if (goUpProgressListener != null) {
+                                    goUpProgressListener.goUpProgress((float) Math.abs(dy) / goUpThreshold);
+                                }
                                 isGoUpThresholdAchieved = false;
                             }
                         }
@@ -603,6 +626,10 @@ public class UserViewWrapper extends FrameLayout {
                                     isGoDownThresholdAchieved = true;
                                 }
                             } else {
+                                // Notify listener for go down progress.
+                                if (goDownProgressListener != null) {
+                                    goDownProgressListener.goDownProgress((float) Math.abs(dy) / goUpThreshold);
+                                }
                                 isGoDownThresholdAchieved = false;
                             }
                         }
@@ -614,6 +641,7 @@ public class UserViewWrapper extends FrameLayout {
                         dy = 0;
                         break;
                 }
+
 
                 ViewHelper.setTranslationY(this, dy);
                 break;
@@ -714,7 +742,6 @@ public class UserViewWrapper extends FrameLayout {
                 mCurentTransX = ViewHelper.getTranslationX(userForegroundView);
                 mOriginalViewTop = getTop();
                 mOriginalViewBottom = getBottom();
-
                 break;
 
             case MotionEvent.ACTION_MOVE:

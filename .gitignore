@@ -78,3 +78,7 @@ Thumbs.db
 
 # gradle directory
 .gradle
+res/drawable-hdpi/jacek.jpg
+res/drawable-hdpi/kieras.png
+res/drawable-hdpi/kuba.jpg
+res/drawable-hdpi/maciej.jpeg
