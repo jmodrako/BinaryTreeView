@@ -1,8 +1,6 @@
 package pl.modrakowski.android;
 
 import android.app.Activity;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.util.Log;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -32,6 +30,9 @@ public class Browse extends Activity {
     @ViewById(R.id.test_btn)
     Button testBtn;
 
+    @ViewById(R.id.tree_txt_indicator)
+    CustomFontTextView indicator;
+
     @AfterInject
     protected void afterInject() {
         getWindow().setBackgroundDrawable(null);
@@ -39,24 +40,74 @@ public class Browse extends Activity {
 
     @AfterViews
     protected void afterViews() {
-        leftLayoutWrapper.setCallbackMoveUp(new UserViewWrapper.CallbackMoveUp() {
+
+        UserViewWrapper.setGoUpThresholdAchievedCallback(new UserViewWrapper.GoUpThresholdAchievedCallback() {
             @Override
-            public void callbackUp(ViewGroup backgroundView, ViewGroup foregroundView) {
-                //((TextView) foregroundView.findViewById(R.id.test_left_child_fore_tv)).setText("Zmiana tekstu. Lewy.");
+            public void goUpThresholdAchievedCallback(ViewGroup backgroundView, ViewGroup foregroundView) {
+                //indicator.setText("Release to go up.");
+            }
+
+            @Override
+            public void goUpThresholdCancelCallback(ViewGroup backgroundView, ViewGroup foregroundView) {
+                indicator.setText("");
+            }
+        });
+        UserViewWrapper.setGoDownThresholdAchievedCallback(new UserViewWrapper.GoDownThresholdAchievedCallback() {
+            @Override
+            public void goDownThresholdAchievedCallback(ViewGroup backgroundView, ViewGroup foregroundView) {
+                indicator.setText("Release to go down.");
+            }
+
+            @Override
+            public void goDownThresholdCancelCallback(ViewGroup backgroundView, ViewGroup foregroundView) {
+                indicator.setText("");
             }
         });
 
-        rightLayoutWrapper.setCallbackMoveUp(new UserViewWrapper.CallbackMoveUp() {
+        UserViewWrapper.setCallbackMoveUpClassListener(new UserViewWrapper.CallbackMoveUp() {
             @Override
             public void callbackUp(ViewGroup backgroundView, ViewGroup foregroundView) {
-                //((TextView) foregroundView.findViewById(R.id.test_right_child_fore_tv)).setText("Zmiana tekstu. Prawy.");
+                indicator.setText("");
+            }
+
+            @Override
+            public void callbackUpCancel(ViewGroup backgroundView, ViewGroup foregroundView) {
+                indicator.setText("");
+            }
+        });
+        UserViewWrapper.setCallbackMoveDownClassListener(new UserViewWrapper.CallbackMoveDown() {
+            @Override
+            public void callbackDown(ViewGroup backgroundView, ViewGroup foregroundView) {
+                indicator.setText("");
+            }
+
+            @Override
+            public void callbackDownCancel(ViewGroup backgroundView, ViewGroup foregroundView) {
+                indicator.setText("");
             }
         });
 
-        parentLayoutWrapper.setCallbackMoveUp(new UserViewWrapper.CallbackMoveUp() {
+        UserViewWrapper.setLongHoldDuringUpMoveListener(new UserViewWrapper.LongHoldDuringUpMoveListener() {
             @Override
-            public void callbackUp(ViewGroup backgroundView, ViewGroup foregroundView) {
-                //((TextView) foregroundView.findViewById(R.id.test_parent_child_fore_tv)).setText("Zmiana tekstu. Parent.");
+            public void onTick(long progress) {
+                indicator.setText(String.format("Release to go down. Time: %d s ", progress));
+            }
+
+            @Override
+            public void onFinish() {
+                indicator.setText("Release to go to the bottom of tree.");
+            }
+        });
+
+        UserViewWrapper.setLongHoldDuringDownMoveListener(new UserViewWrapper.LongHoldDuringDownMoveListener() {
+            @Override
+            public void onTick(long progress) {
+                indicator.setText(String.format("Release to go up. Time: %d s ", progress));
+            }
+
+            @Override
+            public void onFinish() {
+                indicator.setText("Release to go to the top of tree.");
             }
         });
     }

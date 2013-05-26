@@ -1,154 +1,173 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              xmlns:custom="http://schemas.android.com/apk/res/pl.modrakowski.android"
-              android:orientation="vertical"
-              android:layout_width="fill_parent"
-              android:layout_height="fill_parent"
-              android:weightSum="4"
-              android:padding="@dimen/main_screen_padding"
-              android:background="@color/google_now_background">
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+             xmlns:custom="http://schemas.android.com/apk/res/pl.modrakowski.android"
+             android:layout_width="fill_parent"
+             android:layout_height="fill_parent"
+             android:padding="@dimen/main_screen_padding"
+             android:background="@color/google_now_background">
 
-    <!-- Parent view. -->
-    <pl.modrakowski.android.UserViewWrapper
-            android:id="@+id/parent"
-            android:layout_width="match_parent"
-            android:layout_height="0dip"
-            android:layout_weight="2"
-            android:layout_marginBottom="8dip"
-
-            custom:user_type="parent"
-            custom:open_direction="right"
-            custom:outside_move="false"
-            custom:move_direction="down">
-
-        <!-- Parent background view -->
-        <pl.modrakowski.android.UserBackgroundView
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:tag="@string/background_view_tag"
-
-                android:background="@drawable/google_now_background">
-
-            <include layout="@layout/test_parent_background_layout"/>
-
-        </pl.modrakowski.android.UserBackgroundView>
-
-        <!-- Parent fore ground view -->
-        <pl.modrakowski.android.UserForegroundView
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:tag="@string/foreground_view_tag"
-
-                android:background="@drawable/tlo">
-
-            <include layout="@layout/test_parent_foreground_layout"/>
-
-        </pl.modrakowski.android.UserForegroundView>
-
-    </pl.modrakowski.android.UserViewWrapper>
-
-    <!-- Left Child view. -->
-    <pl.modrakowski.android.UserViewWrapper
-            android:id="@+id/left_child"
-            android:layout_width="match_parent"
-            android:layout_height="0dip"
-            android:layout_weight="1"
-            android:layout_marginBottom="8dip"
-
-            custom:user_type="leftChild"
-            custom:open_direction="left"
-            custom:outside_move="false"
-            custom:move_direction="up">
-
-        <pl.modrakowski.android.UserBackgroundView
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:tag="@string/background_view_tag"
-
-                android:background="@drawable/google_now_background">
-
-            <include layout="@layout/test_left_child_background_layout"/>
-
-        </pl.modrakowski.android.UserBackgroundView>
-
-        <pl.modrakowski.android.UserForegroundView
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:tag="@string/foreground_view_tag"
-
-                android:background="@drawable/tlo">
-
-            <include layout="@layout/test_left_child_foreground_layout"/>
-
-        </pl.modrakowski.android.UserForegroundView>
-
-    </pl.modrakowski.android.UserViewWrapper>
-
-    <!-- Right Child view. -->
-    <pl.modrakowski.android.UserViewWrapper
-            android:id="@+id/right_child"
-            android:layout_width="match_parent"
-            android:layout_height="0dip"
-            android:layout_weight="1"
-
-            custom:user_type="rightChild"
-            custom:open_direction="right"
-            custom:outside_move="false"
-            custom:move_direction="up">
-
-        <pl.modrakowski.android.UserBackgroundView
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:tag="@string/background_view_tag"
-
-                android:background="@drawable/google_now_background">
-
-            <include layout="@layout/test_right_child_background_layout"/>
-
-        </pl.modrakowski.android.UserBackgroundView>
-
-        <pl.modrakowski.android.UserForegroundView
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:tag="@string/foreground_view_tag"
-
-                android:background="@drawable/tlo">
-
-            <include layout="@layout/test_right_child_foreground_layout"/>
-
-        </pl.modrakowski.android.UserForegroundView>
-
-    </pl.modrakowski.android.UserViewWrapper>
-
-    <!-- Buttons container -->
-    <LinearLayout
+    <pl.modrakowski.android.CustomFontTextView
+            android:id="@+id/tree_txt_indicator"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:visibility="gone">
+            android:textSize="24dip"
+            android:gravity="center"
+            android:layout_gravity="top|center_horizontal"
+            custom:customFont="Roboto-Condensed.ttf"
+            android:visibility="visible"
+            android:textColor="@color/google_now_item_dark_background"/>
 
-        <Button
-                android:id="@+id/to_left"
-                android:layout_width="0dip"
-                android:layout_weight="1"
-                android:layout_height="wrap_content"
-                android:text="LEFT"/>
+    <!-- Tree layout -->
+    <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:weightSum="4"
+            android:layout_gravity="center">
 
-        <Button
-                android:id="@+id/to_right"
-                android:layout_width="0dip"
-                android:layout_weight="1"
-                android:layout_height="wrap_content"
-                android:text="RIGHT"/>
+        <!-- Parent view. -->
+        <pl.modrakowski.android.UserViewWrapper
+                android:id="@+id/parent"
+                android:layout_width="match_parent"
+                android:layout_height="0dip"
+                android:layout_weight="2"
+                android:layout_marginBottom="8dip"
 
-        <Button
-                android:id="@+id/prompt"
-                android:layout_width="0dip"
+                custom:user_type="parent"
+                custom:open_direction="right"
+                custom:outside_move="false"
+                custom:move_direction="down">
+
+            <!-- Parent background view -->
+            <pl.modrakowski.android.UserBackgroundView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:tag="@string/background_view_tag"
+
+                    android:background="@drawable/google_now_background">
+
+                <include layout="@layout/test_parent_background_layout"/>
+
+            </pl.modrakowski.android.UserBackgroundView>
+
+            <!-- Parent fore ground view -->
+            <pl.modrakowski.android.UserForegroundView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:tag="@string/foreground_view_tag"
+
+                    android:background="@drawable/tlo">
+
+                <include layout="@layout/test_parent_foreground_layout"/>
+
+            </pl.modrakowski.android.UserForegroundView>
+
+        </pl.modrakowski.android.UserViewWrapper>
+
+        <!-- Left Child view. -->
+        <pl.modrakowski.android.UserViewWrapper
+                android:id="@+id/left_child"
+                android:layout_width="match_parent"
+                android:layout_height="0dip"
                 android:layout_weight="1"
+                android:layout_marginBottom="8dip"
+
+                custom:user_type="leftChild"
+                custom:open_direction="left"
+                custom:outside_move="false"
+                custom:move_direction="up">
+
+            <pl.modrakowski.android.UserBackgroundView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:tag="@string/background_view_tag"
+
+                    android:background="@drawable/google_now_background">
+
+                <include layout="@layout/test_left_child_background_layout"/>
+
+            </pl.modrakowski.android.UserBackgroundView>
+
+            <pl.modrakowski.android.UserForegroundView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:tag="@string/foreground_view_tag"
+
+                    android:background="@drawable/tlo">
+
+                <include layout="@layout/test_left_child_foreground_layout"/>
+
+            </pl.modrakowski.android.UserForegroundView>
+
+        </pl.modrakowski.android.UserViewWrapper>
+
+        <!-- Right Child view. -->
+        <pl.modrakowski.android.UserViewWrapper
+                android:id="@+id/right_child"
+                android:layout_width="match_parent"
+                android:layout_height="0dip"
+                android:layout_weight="1"
+
+                custom:user_type="rightChild"
+                custom:open_direction="right"
+                custom:outside_move="false"
+                custom:move_direction="up">
+
+            <pl.modrakowski.android.UserBackgroundView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:tag="@string/background_view_tag"
+
+                    android:background="@drawable/google_now_background">
+
+                <include layout="@layout/test_right_child_background_layout"/>
+
+            </pl.modrakowski.android.UserBackgroundView>
+
+            <pl.modrakowski.android.UserForegroundView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:tag="@string/foreground_view_tag"
+
+                    android:background="@drawable/tlo">
+
+                <include layout="@layout/test_right_child_foreground_layout"/>
+
+            </pl.modrakowski.android.UserForegroundView>
+
+        </pl.modrakowski.android.UserViewWrapper>
+
+        <!-- Buttons container -->
+        <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Prompt"/>
+                android:orientation="horizontal"
+                android:visibility="gone">
+
+            <Button
+                    android:id="@+id/to_left"
+                    android:layout_width="0dip"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:text="LEFT"/>
+
+            <Button
+                    android:id="@+id/to_right"
+                    android:layout_width="0dip"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:text="RIGHT"/>
+
+            <Button
+                    android:id="@+id/prompt"
+                    android:layout_width="0dip"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:text="Prompt"/>
+
+        </LinearLayout>
 
     </LinearLayout>
 
-</LinearLayout>
+</FrameLayout>
 
