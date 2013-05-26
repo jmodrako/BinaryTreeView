@@ -3,7 +3,6 @@
              xmlns:custom="http://schemas.android.com/apk/res/pl.modrakowski.android"
              android:layout_width="fill_parent"
              android:layout_height="fill_parent"
-             android:padding="@dimen/main_screen_padding"
              android:background="@color/google_now_background">
 
     <pl.modrakowski.android.CustomFontTextView
@@ -23,7 +22,8 @@
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
             android:weightSum="4"
-            android:layout_gravity="center">
+            android:layout_gravity="center"
+            android:padding="@dimen/main_screen_padding">
 
         <!-- Parent view. -->
         <pl.modrakowski.android.UserViewWrapper

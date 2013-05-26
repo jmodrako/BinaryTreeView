@@ -694,13 +694,7 @@ public class UserViewWrapper extends FrameLayout {
                                     goUpThresholdAchievedCallback.goUpThresholdCancelCallback(userBackgroundView, userForegroundView);
                                 }
 
-                                // TODO Move below code to other place.
-                                /*if (callbackMoveUpClassListener != null && isGoUpThresholdAchieved) {
-                                    callbackMoveUpClassListener.callbackUpCancel(userBackgroundView, userForegroundView);
-                                }*/
-
                                 countDownTimerDuringUpMove.cancel();
-
                                 isGoUpThresholdAchieved = false;
                             }
                         }
@@ -733,13 +727,7 @@ public class UserViewWrapper extends FrameLayout {
                                     goDownThresholdAchievedCallback.goDownThresholdCancelCallback(userBackgroundView, userForegroundView);
                                 }
 
-                                // TODO Move below code to other place.
-                                /*if (callbackMoveDownClassListener != null && isGoDownThresholdAchieved) {
-                                    callbackMoveDownClassListener.callbackDownCancel(userBackgroundView, userForegroundView);
-                                }*/
-
                                 countDownTimerDuringDownMove.cancel();
-
                                 isGoDownThresholdAchieved = false;
                             }
                         }
