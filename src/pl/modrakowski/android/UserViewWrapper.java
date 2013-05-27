@@ -6,6 +6,7 @@ import android.os.CountDownTimer;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.BounceInterpolator;
@@ -26,35 +27,61 @@ import java.util.ArrayList;
  */
 public class UserViewWrapper extends FrameLayout {
 
-
+    /**
+     * Listener used for notify user about go level up action.
+     */
     public static interface OnLevelUpListener {
         public void onLevelUp(ViewGroup backgroundView, ViewGroup foregroundView);
     }
 
+    /**
+     * Listener used for notify user about go level down action.
+     */
     public static interface OnLevelDownListener {
         public void onLevelDown(ViewGroup backgroundView, ViewGroup foregroundView);
     }
 
+    /**
+     * Interface used for notify user about achieve threshold,
+     * during movement up.
+     */
     public static interface OnGoUpThresholdAchievedListener {
         public void onThresholdAchieved(ViewGroup backgroundView, ViewGroup foregroundView);
 
         public void onThresholdCancel(ViewGroup backgroundView, ViewGroup foregroundView);
     }
 
+    /**
+     * Interface used for notify user about achieve threshold,
+     * during movement down.
+     */
     public static interface OnGoDownThresholdAchievedListener {
         public void onThresholdAchieved(ViewGroup backgroundView, ViewGroup foregroundView);
 
         public void onThresholdCancel(ViewGroup backgroundView, ViewGroup foregroundView);
     }
 
+    /**
+     * Interface used for notify user about progress,
+     * during movement up. Value from 0 to 1.
+     */
     public static interface OnMoveUpProgressListener {
         public void moveUpProgress(float progress);
     }
 
+    /**
+     * Interface used for notify user about progress,
+     * during movement down. Value from 0 to 1.
+     */
     public static interface OnMoveDownProgressListener {
         public void moveDownProgress(float progress);
     }
 
+    /**
+     * Interface used for set custom action, when user hold
+     * view above up threshold, for some time. That time is
+     * described by longUpHoldTimeMs variable.
+     */
     public static interface OnHoldDuringMoveUpListener {
         public void onTick(long progress);
 
@@ -63,6 +90,11 @@ public class UserViewWrapper extends FrameLayout {
         public void onCancel();
     }
 
+    /**
+     * Interface used for set custom action, when user hold
+     * view above down threshold, for some time. That time is
+     * described by longDownHoldTimeMs variable.
+     */
     public static interface OnHoldDuringMoveDownListener {
         public void onTick(long progress);
 
@@ -71,48 +103,71 @@ public class UserViewWrapper extends FrameLayout {
         public void onCancel();
     }
 
+    /**
+     * Interface used for notify user about situation when views are
+     * above the top edge of the screen. In this situation,
+     * all views are outiside of the screen.
+     * In this state we can change data on views.
+     */
     public static interface OnViewsAreAtTheTopOfTheScreenListener {
         public void onViewsAreAtTheTopOfTheScreen(WrapperUserType wrapperUserType);
     }
 
+    /**
+     * Interface used for notify user about situation when views are
+     * below the bottom edge of the screen. In this situation,
+     * all views are outiside of the screen.
+     * In this state we can change data on views.
+     */
     public static interface OnViewsAreAtTheBottomOfTheScreenListener {
         public void onViewsAreAtTheBottomOfTheScreen(WrapperUserType wrapperUserType);
     }
 
 
+    /**
+     * Enum describes current view type by user role in the view.
+     */
     public static enum WrapperUserType {
         LEFT_CHILD, RIGHT_CHILD, PARENT
     }
 
+    /**
+     * Enum describes current state of tree view.
+     */
     public static enum WrapperState {
         IDLE, ANIMATING, VERTICAL_MOVE, HORIZONTAL_MOVE
     }
 
+    /**
+     * Enum describes direction in which view can be opened through slide it.
+     */
     public static enum OpenDirection {
         TO_LEFT, TO_RIGHT, NONE
     }
 
+    /**
+     * Enum describes direction in which view can be slided up and down.
+     */
     public static enum MoveDirection {
         UP, DOWN, BOTH, NONE
     }
 
-
+    // List of all wrappers, used to notify other wrappers in tree.
     private static ArrayList<UserViewWrapper> sWrappers = new ArrayList<UserViewWrapper>();
 
+    // Listeners for some actions in the tree.
     private static OnLevelUpListener onLevelUpListenerClassListener;
     private static OnLevelDownListener onLevelDownListenerClassListener;
-
     private static OnGoUpThresholdAchievedListener onGoUpThresholdAchievedListener;
     private static OnGoDownThresholdAchievedListener onGoDownThresholdAchievedListener;
-
     private static OnHoldDuringMoveUpListener onHoldDuringMoveUpListener;
     private static OnHoldDuringMoveDownListener onHoldDuringMoveDownListener;
-
     private static OnViewsAreAtTheTopOfTheScreenListener onViewsAreAtTheTopOfTheScreenListener;
     private static OnViewsAreAtTheBottomOfTheScreenListener onViewsAreAtTheBottomOfTheScreenListener;
 
-
+    // Wrapper for background view.
     private UserBackgroundView userBackgroundView;
+    // Wrapper for foreground view.
     private UserForegroundView userForegroundView;
 
     private WrapperUserType wrapperUserType;
@@ -131,24 +186,24 @@ public class UserViewWrapper extends FrameLayout {
     private CountDownTimer countDownTimerDuringUpMove;
     private CountDownTimer countDownTimerDuringDownMove;
 
-    private long slideUpDownViews;
-    private long openCloseViewDuration;
-
+    private long slideUpDownViewsMs;
+    private long openCloseViewDurationMs;
     private long scaledTouchSlope;
-    private long mainScreenPaddingTop;
-
+    private long treeViewPaddingPx;
     private long openThresholdPx;
     private long closeThresholdPx;
-    private long callbackThreshold;
-    private long goUpThreshold;
-    private long goDownThreshold;
+    private long goUpThresholdPx;
+    private long goDownThresholdPx;
+
+    private int longUpHoldTimeMs;
+    private int longDownHoldTimeMs;
 
     private boolean isForegroundViewIsOpen;
     private boolean isViewCanBeMovedOutsideScreen;
 
-    // Flag is use to determine is threshold to go UP was achieve.
+    // Flag is use to determine is threshold to go UP was achieved.
     private boolean isGoUpThresholdAchieved;
-    // Flag is use to determine is threshold to go DOWN was achieve.
+    // Flag is use to determine is threshold to go DOWN was achieved.
     private boolean isGoDownThresholdAchieved;
 
     private int mDownX;
@@ -272,18 +327,15 @@ public class UserViewWrapper extends FrameLayout {
     @Override
     public void dispatchWindowVisibilityChanged(int visibility) {
         super.dispatchWindowVisibilityChanged(visibility);
-        Browse.Logger.i("visibility changed: " + visibility + ", user: " + wrapperUserType);
         // View.GONE = 8;
         // View.INVISIBLE = 4;
         // View.VISIBLE = 0;
-
         // Unregister self from wrappers array list.
         if (/*visibility == View.INVISIBLE ||*/ visibility == View.GONE) {
             sWrappers.remove(this);
         } else if (/*visibility == View.INVISIBLE ||*/ visibility == View.VISIBLE) {
             sWrappers.add(this);
         }
-
     }
 
 
@@ -388,6 +440,35 @@ public class UserViewWrapper extends FrameLayout {
 
     public static void setOnViewsAreAtTheBottomOfTheScreenListener(OnViewsAreAtTheBottomOfTheScreenListener onViewsAreAtTheBottomOfTheScreenListener) {
         UserViewWrapper.onViewsAreAtTheBottomOfTheScreenListener = onViewsAreAtTheBottomOfTheScreenListener;
+    }
+
+
+    public void setSlideUpDownViewsMs(long slideUpDownViewsMs) {
+        this.slideUpDownViewsMs = slideUpDownViewsMs;
+    }
+
+    public void setOpenCloseViewDurationMs(long openCloseViewDurationMs) {
+        this.openCloseViewDurationMs = openCloseViewDurationMs;
+    }
+
+    public void setTreeViewPaddingDip(long treeViewPaddingDip) {
+        this.treeViewPaddingPx = getPixels((int) treeViewPaddingDip);
+    }
+
+    public void setOpenThresholdPx(long openThresholdPx) {
+        this.openThresholdPx = openThresholdPx;
+    }
+
+    public void setCloseThresholdPx(long closeThresholdPx) {
+        this.closeThresholdPx = closeThresholdPx;
+    }
+
+    public void setGoUpThresholdPx(long goUpThresholdPx) {
+        this.goUpThresholdPx = goUpThresholdPx;
+    }
+
+    public void setGoDownThresholdPx(long goDownThresholdPx) {
+        this.goDownThresholdPx = goDownThresholdPx;
     }
 
 
@@ -682,8 +763,8 @@ public class UserViewWrapper extends FrameLayout {
             case MotionEvent.ACTION_MOVE:
                 int dy = (int) (motionEvent.getRawY() - mDownY);
                 int parentHeight = ((ViewGroup) getParent()).getMeasuredHeight();
-                int topEdgeConstrain = (int) (mainScreenPaddingTop - mOriginalViewTop);
-                int bottomEdgeConstrain = (int) (parentHeight - mOriginalViewBottom - mainScreenPaddingTop);
+                int topEdgeConstrain = (int) (treeViewPaddingPx - mOriginalViewTop);
+                int bottomEdgeConstrain = (int) (parentHeight - mOriginalViewBottom - treeViewPaddingPx);
 
                 if (!isViewCanBeMovedOutsideScreen) {   // Forbid move outside top edge.
                     if (dy < topEdgeConstrain) {
@@ -700,7 +781,7 @@ public class UserViewWrapper extends FrameLayout {
                         if (Math.signum(dy) != -1) {
                             return;
                         } else {
-                            if (Math.abs(dy) > callbackThreshold) {
+                            if (Math.abs(dy) > goUpThresholdPx) {
                                 if (!isGoUpThresholdAchieved) {
                                     if (onGoUpThresholdAchievedListener != null) {
                                         // Firstly notify once through static variables.
@@ -716,7 +797,7 @@ public class UserViewWrapper extends FrameLayout {
                             } else {
                                 // Notify listener about go up progress.
                                 if (onMoveUpProgressListener != null) {
-                                    onMoveUpProgressListener.moveUpProgress((float) Math.abs(dy) / goUpThreshold);
+                                    onMoveUpProgressListener.moveUpProgress((float) Math.abs(dy) / goUpThresholdPx);
                                 }
 
                                 if (onGoUpThresholdAchievedListener != null) {
@@ -733,7 +814,7 @@ public class UserViewWrapper extends FrameLayout {
                         if (Math.signum(dy) != 1) {
                             return;
                         } else {
-                            if (Math.abs(dy) > callbackThreshold) {
+                            if (Math.abs(dy) > goDownThresholdPx) {
                                 if (!isGoDownThresholdAchieved) {
                                     if (onGoDownThresholdAchievedListener != null) {
                                         // Firstly notify once through static variables.
@@ -749,7 +830,7 @@ public class UserViewWrapper extends FrameLayout {
                             } else {
                                 // Notify listener about go down progress.
                                 if (onMoveDownProgressListener != null) {
-                                    onMoveDownProgressListener.moveDownProgress((float) Math.abs(dy) / goUpThreshold);
+                                    onMoveDownProgressListener.moveDownProgress((float) Math.abs(dy) / goDownThresholdPx);
                                 }
 
                                 if (onGoDownThresholdAchievedListener != null) {
@@ -880,14 +961,14 @@ public class UserViewWrapper extends FrameLayout {
 
     private ObjectAnimator createObjectAnimatorHelperY(final View view, Animator.AnimatorListener listener, float... values) {
         ObjectAnimator objectAnimator = ObjectAnimator.ofFloat(view, "translationY", values);
-        objectAnimator.setDuration(slideUpDownViews);
+        objectAnimator.setDuration(slideUpDownViewsMs);
         objectAnimator.addListener(listener);
         return objectAnimator;
     }
 
     private ObjectAnimator createObjectAnimatorHelperX(final View view, Animator.AnimatorListener listener, float... values) {
         ObjectAnimator objectAnimator = ObjectAnimator.ofFloat(view, "translationX", values);
-        objectAnimator.setDuration(openCloseViewDuration);
+        objectAnimator.setDuration(openCloseViewDurationMs);
         objectAnimator.addListener(listener);
         return objectAnimator;
     }
@@ -1036,16 +1117,16 @@ public class UserViewWrapper extends FrameLayout {
 
         }
 
+
         // Initialize constants from resources.
-        slideUpDownViews = getResources().getInteger(R.integer.slide_up_down_views_ms);
-        openCloseViewDuration = getResources().getInteger(R.integer.open_close_view_ms);
-        scaledTouchSlope = getResources().getInteger(R.integer.scaled_touch_slope_px);
-        mainScreenPaddingTop = getResources().getDimensionPixelSize(R.dimen.main_screen_padding);
-        openThresholdPx = getResources().getInteger(R.integer.open_threshold_px);
-        closeThresholdPx = getResources().getInteger(R.integer.close_threshold_px);
-        callbackThreshold = getResources().getInteger(R.integer.callback_threshold_px);
-        goDownThreshold = getResources().getInteger(R.integer.go_down_threshold_px);
-        goUpThreshold = getResources().getInteger(R.integer.go_up_threshold_px);
+        slideUpDownViewsMs = 460;
+        openCloseViewDurationMs = 300;
+        scaledTouchSlope = ViewConfiguration.get(context).getScaledTouchSlop();
+        treeViewPaddingPx = getPixels(8);
+        openThresholdPx = 200;
+        closeThresholdPx = 200;
+        goDownThresholdPx = 200;
+        goUpThresholdPx = 200;
 
         // Register self as listener for messages from other wrappers.
         sWrappers.add(this);
@@ -1086,6 +1167,13 @@ public class UserViewWrapper extends FrameLayout {
         };
     }
 
+    private int getDip(int pixel) {
+        return (pixel * 160 / getResources().getDisplayMetrics().densityDpi);
+    }
+
+    private int getPixels(int dip) {
+        return (getResources().getDisplayMetrics().densityDpi * dip / 160);
+    }
 
     /**
      * Helper class to avoid create useless methods in base Listener interface.
