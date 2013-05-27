@@ -18,6 +18,8 @@ import pl.modrakowski.android.models.User;
 public class BinaryTreeFragment extends Fragment {
 
     protected UserViewWrapper parentLayoutWrapper;
+    protected UserViewWrapper leftLayoutWrapper;
+    protected UserViewWrapper rightLayoutWrapper;
 
     private CustomFontTextView parentFirstName;
     private CustomFontTextView parentLastName;
@@ -60,6 +62,8 @@ public class BinaryTreeFragment extends Fragment {
         userTreeCache.addUser(new User(6, 2, "Richard", "Harris", getString(R.string.haris_desc), getString(R.string.haris_role), R.drawable.harris, 1));
 
         parentLayoutWrapper = (UserViewWrapper) getView().findViewById(R.id.parent);
+        leftLayoutWrapper = (UserViewWrapper) getView().findViewById(R.id.left_child);
+        rightLayoutWrapper = (UserViewWrapper) getView().findViewById(R.id.right_child);
 
         parentFirstName = (CustomFontTextView) getView().findViewById(R.id.test_parent_first_name);
         parentLastName = (CustomFontTextView) getView().findViewById(R.id.test_parent_last_name);
@@ -110,14 +114,20 @@ public class BinaryTreeFragment extends Fragment {
             public void onViewsAreAtTheBottomOfTheScreen(UserViewWrapper.WrapperUserType wrapperUserType) {
                 switch (wrapperUserType) {
                     case LEFT_CHILD:
-                        // Get childs for current hold LEFT user.
-                        Pair<User, User> pairLeft = userTreeCache.getChildsForParent(currentLeft);
-                        fillLevel(currentLeft, pairLeft.first, pairLeft.second);
+                        try {
+                            // Get childs for current hold LEFT user.
+                            Pair<User, User> pairLeft = userTreeCache.getChildsForParent(currentLeft);
+                            fillLevel(currentLeft, pairLeft.first, pairLeft.second);
+                        } catch (Exception ignore) {
+                        }
                         break;
                     case RIGHT_CHILD:
-                        // Get childs for current hold RIGHT user.
-                        Pair<User, User> pairRight = userTreeCache.getChildsForParent(currentRight);
-                        fillLevel(currentLeft, pairRight.first, pairRight.second);
+                        try {
+                            // Get childs for current hold RIGHT user.
+                            Pair<User, User> pairRight = userTreeCache.getChildsForParent(currentRight);
+                            fillLevel(currentRight, pairRight.first, pairRight.second);
+                        } catch (Exception ignore) {
+                        }
                         break;
                 }
             }
