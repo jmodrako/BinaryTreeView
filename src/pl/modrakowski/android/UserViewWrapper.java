@@ -26,49 +26,59 @@ import java.util.ArrayList;
  */
 public class UserViewWrapper extends FrameLayout {
 
-    public static interface CallbackMoveUp {
-        public void callbackUp(ViewGroup backgroundView, ViewGroup foregroundView);
 
-        public void callbackUpCancel(ViewGroup backgroundView, ViewGroup foregroundView);
+    public static interface OnLevelUpListener {
+        public void onLevelUp(ViewGroup backgroundView, ViewGroup foregroundView);
     }
 
-    public static interface CallbackMoveDown {
-        public void callbackDown(ViewGroup backgroundView, ViewGroup foregroundView);
-
-        public void callbackDownCancel(ViewGroup backgroundView, ViewGroup foregroundView);
+    public static interface OnLevelDownListener {
+        public void onLevelDown(ViewGroup backgroundView, ViewGroup foregroundView);
     }
 
-    public static interface GoUpThresholdAchievedCallback {
-        public void goUpThresholdAchievedCallback(ViewGroup backgroundView, ViewGroup foregroundView);
+    public static interface OnGoUpThresholdAchievedListener {
+        public void onThresholdAchieved(ViewGroup backgroundView, ViewGroup foregroundView);
 
-        public void goUpThresholdCancelCallback(ViewGroup backgroundView, ViewGroup foregroundView);
+        public void onThresholdCancel(ViewGroup backgroundView, ViewGroup foregroundView);
     }
 
-    public static interface GoDownThresholdAchievedCallback {
-        public void goDownThresholdAchievedCallback(ViewGroup backgroundView, ViewGroup foregroundView);
+    public static interface OnGoDownThresholdAchievedListener {
+        public void onThresholdAchieved(ViewGroup backgroundView, ViewGroup foregroundView);
 
-        public void goDownThresholdCancelCallback(ViewGroup backgroundView, ViewGroup foregroundView);
+        public void onThresholdCancel(ViewGroup backgroundView, ViewGroup foregroundView);
     }
 
-    public static interface GoUpProgressListener {
-        public void goUpProgress(float progress);
+    public static interface OnMoveUpProgressListener {
+        public void moveUpProgress(float progress);
     }
 
-    public static interface GoDownProgressListener {
-        public void goDownProgress(float progress);
+    public static interface OnMoveDownProgressListener {
+        public void moveDownProgress(float progress);
     }
 
-    public static interface LongHoldDuringUpMoveListener {
+    public static interface OnHoldDuringMoveUpListener {
         public void onTick(long progress);
 
         public void onFinish();
+
+        public void onCancel();
     }
 
-    public static interface LongHoldDuringDownMoveListener {
+    public static interface OnHoldDuringMoveDownListener {
         public void onTick(long progress);
 
         public void onFinish();
+
+        public void onCancel();
     }
+
+    public static interface OnViewsAreAtTheTopOfTheScreenListener {
+        public void onViewsAreAtTheTopOfTheScreen(WrapperUserType wrapperUserType);
+    }
+
+    public static interface OnViewsAreAtTheBottomOfTheScreenListener {
+        public void onViewsAreAtTheBottomOfTheScreen(WrapperUserType wrapperUserType);
+    }
+
 
     public static enum WrapperUserType {
         LEFT_CHILD, RIGHT_CHILD, PARENT
@@ -86,7 +96,21 @@ public class UserViewWrapper extends FrameLayout {
         UP, DOWN, BOTH, NONE
     }
 
+
     private static ArrayList<UserViewWrapper> sWrappers = new ArrayList<UserViewWrapper>();
+
+    private static OnLevelUpListener onLevelUpListenerClassListener;
+    private static OnLevelDownListener onLevelDownListenerClassListener;
+
+    private static OnGoUpThresholdAchievedListener onGoUpThresholdAchievedListener;
+    private static OnGoDownThresholdAchievedListener onGoDownThresholdAchievedListener;
+
+    private static OnHoldDuringMoveUpListener onHoldDuringMoveUpListener;
+    private static OnHoldDuringMoveDownListener onHoldDuringMoveDownListener;
+
+    private static OnViewsAreAtTheTopOfTheScreenListener onViewsAreAtTheTopOfTheScreenListener;
+    private static OnViewsAreAtTheBottomOfTheScreenListener onViewsAreAtTheBottomOfTheScreenListener;
+
 
     private UserBackgroundView userBackgroundView;
     private UserForegroundView userForegroundView;
@@ -98,20 +122,11 @@ public class UserViewWrapper extends FrameLayout {
     private OpenDirection openDirection;
     private MoveDirection moveDirection;
 
-    private CallbackMoveUp callbackMoveUp;
-    private CallbackMoveDown callbackMoveDown;
+    private OnLevelUpListener onLevelUpListener;
+    private OnLevelDownListener onLevelDownListener;
 
-    private static CallbackMoveUp callbackMoveUpClassListener;
-    private static CallbackMoveDown callbackMoveDownClassListener;
-
-    private static GoUpThresholdAchievedCallback goUpThresholdAchievedCallback;
-    private static GoDownThresholdAchievedCallback goDownThresholdAchievedCallback;
-
-    private GoUpProgressListener goUpProgressListener;
-    private GoDownProgressListener goDownProgressListener;
-
-    private static LongHoldDuringUpMoveListener longHoldDuringUpMoveListener;
-    private static LongHoldDuringDownMoveListener longHoldDuringDownMoveListener;
+    private OnMoveUpProgressListener onMoveUpProgressListener;
+    private OnMoveDownProgressListener onMoveDownProgressListener;
 
     private CountDownTimer countDownTimerDuringUpMove;
     private CountDownTimer countDownTimerDuringDownMove;
@@ -257,15 +272,18 @@ public class UserViewWrapper extends FrameLayout {
     @Override
     public void dispatchWindowVisibilityChanged(int visibility) {
         super.dispatchWindowVisibilityChanged(visibility);
-
+        Browse.Logger.i("visibility changed: " + visibility + ", user: " + wrapperUserType);
         // View.GONE = 8;
         // View.INVISIBLE = 4;
         // View.VISIBLE = 0;
 
         // Unregister self from wrappers array list.
-        if (visibility == View.INVISIBLE || visibility == View.GONE) {
+        if (/*visibility == View.INVISIBLE ||*/ visibility == View.GONE) {
             sWrappers.remove(this);
+        } else if (/*visibility == View.INVISIBLE ||*/ visibility == View.VISIBLE) {
+            sWrappers.add(this);
         }
+
     }
 
 
@@ -315,49 +333,61 @@ public class UserViewWrapper extends FrameLayout {
         openDirection = direction;
     }
 
-
-    public void setCallbackMoveUp(CallbackMoveUp callbackMoveUp) {
-        this.callbackMoveUp = callbackMoveUp;
+    public void setMoveDirection(MoveDirection moveDirection) {
+        this.moveDirection = moveDirection;
     }
 
-    public void setCallbackMoveDown(CallbackMoveDown callbackMoveDown) {
-        this.callbackMoveDown = callbackMoveDown;
+    public void setOnLevelUpListener(OnLevelUpListener onLevelUpListener) {
+        this.onLevelUpListener = onLevelUpListener;
     }
 
-
-    public void setGoUpProgressListener(GoUpProgressListener goUpProgressListener) {
-        this.goUpProgressListener = goUpProgressListener;
-    }
-
-    public void setGoDownProgressListener(GoDownProgressListener goDownProgressListener) {
-        this.goDownProgressListener = goDownProgressListener;
+    public void setOnLevelDownListener(OnLevelDownListener onLevelDownListener) {
+        this.onLevelDownListener = onLevelDownListener;
     }
 
 
-    public static void setLongHoldDuringUpMoveListener(LongHoldDuringUpMoveListener longHoldDuringUpMoveListener) {
-        UserViewWrapper.longHoldDuringUpMoveListener = longHoldDuringUpMoveListener;
+    public void setOnMoveUpProgressListener(OnMoveUpProgressListener onMoveUpProgressListener) {
+        this.onMoveUpProgressListener = onMoveUpProgressListener;
     }
 
-    public static void setLongHoldDuringDownMoveListener(LongHoldDuringDownMoveListener longHoldDuringDownMoveListener) {
-        UserViewWrapper.longHoldDuringDownMoveListener = longHoldDuringDownMoveListener;
-    }
-
-
-    public static void setCallbackMoveUpClassListener(CallbackMoveUp callbackMoveUpClassListener) {
-        UserViewWrapper.callbackMoveUpClassListener = callbackMoveUpClassListener;
-    }
-
-    public static void setCallbackMoveDownClassListener(CallbackMoveDown callbackMoveDownClassListener) {
-        UserViewWrapper.callbackMoveDownClassListener = callbackMoveDownClassListener;
+    public void setOnMoveDownProgressListener(OnMoveDownProgressListener onMoveDownProgressListener) {
+        this.onMoveDownProgressListener = onMoveDownProgressListener;
     }
 
 
-    public static void setGoUpThresholdAchievedCallback(GoUpThresholdAchievedCallback goUpThresholdAchievedCallback) {
-        UserViewWrapper.goUpThresholdAchievedCallback = goUpThresholdAchievedCallback;
+    public static void setOnHoldDuringMoveUpListener(OnHoldDuringMoveUpListener onHoldDuringMoveUpListener) {
+        UserViewWrapper.onHoldDuringMoveUpListener = onHoldDuringMoveUpListener;
     }
 
-    public static void setGoDownThresholdAchievedCallback(GoDownThresholdAchievedCallback goDownThresholdAchievedCallback) {
-        UserViewWrapper.goDownThresholdAchievedCallback = goDownThresholdAchievedCallback;
+    public static void setOnHoldDuringMoveDownListener(OnHoldDuringMoveDownListener onHoldDuringMoveDownListener) {
+        UserViewWrapper.onHoldDuringMoveDownListener = onHoldDuringMoveDownListener;
+    }
+
+
+    public static void setOnLevelUpListenerClassListener(OnLevelUpListener onLevelUpListenerClassListener) {
+        UserViewWrapper.onLevelUpListenerClassListener = onLevelUpListenerClassListener;
+    }
+
+    public static void setOnLevelDownListenerClassListener(OnLevelDownListener onLevelDownListenerClassListener) {
+        UserViewWrapper.onLevelDownListenerClassListener = onLevelDownListenerClassListener;
+    }
+
+
+    public static void setOnGoUpThresholdAchievedListener(OnGoUpThresholdAchievedListener onGoUpThresholdAchievedListener) {
+        UserViewWrapper.onGoUpThresholdAchievedListener = onGoUpThresholdAchievedListener;
+    }
+
+    public static void setOnGoDownThresholdAchievedListener(OnGoDownThresholdAchievedListener onGoDownThresholdAchievedListener) {
+        UserViewWrapper.onGoDownThresholdAchievedListener = onGoDownThresholdAchievedListener;
+    }
+
+
+    public static void setOnViewsAreAtTheTopOfTheScreenListener(OnViewsAreAtTheTopOfTheScreenListener onViewsAreAtTheTopOfTheScreenListener) {
+        UserViewWrapper.onViewsAreAtTheTopOfTheScreenListener = onViewsAreAtTheTopOfTheScreenListener;
+    }
+
+    public static void setOnViewsAreAtTheBottomOfTheScreenListener(OnViewsAreAtTheBottomOfTheScreenListener onViewsAreAtTheBottomOfTheScreenListener) {
+        UserViewWrapper.onViewsAreAtTheBottomOfTheScreenListener = onViewsAreAtTheBottomOfTheScreenListener;
     }
 
 
@@ -387,25 +417,25 @@ public class UserViewWrapper extends FrameLayout {
                 break;
 
             case CallbackMsg.MOVEMENT_THRESHOLD_UP_ACHIEVED:
-                Browse.Logger.i("MOVEMENT_THRESHOLD_UP_ACHIEVED");
-                if (callbackMoveUp != null) {
-                    callbackMoveUp.callbackUp(userBackgroundView, userForegroundView);
+//                Browse.Logger.i("MOVEMENT_THRESHOLD_UP_ACHIEVED");
+                if (onLevelUpListener != null) {
+                    onLevelUpListener.onLevelUp(userBackgroundView, userForegroundView);
                 }
                 break;
 
             case CallbackMsg.MOVEMENT_THRESHOLD_DOWN_ACHIEVED:
-                Browse.Logger.i("MOVEMENT_THRESHOLD_DOWN_ACHIEVED");
-                if (callbackMoveDown != null) {
-                    callbackMoveDown.callbackDown(userBackgroundView, userForegroundView);
+//                Browse.Logger.i("MOVEMENT_THRESHOLD_DOWN_ACHIEVED");
+                if (onLevelDownListener != null) {
+                    onLevelDownListener.onLevelDown(userBackgroundView, userForegroundView);
                 }
                 break;
 
             case CallbackMsg.LEVEL_UP:
-                Browse.Logger.i("LEVEL_UP");
+//                Browse.Logger.i("LEVEL_UP");
                 break;
 
             case CallbackMsg.LEVEL_DOWN:
-                Browse.Logger.i("LEVEL_DOWN");
+//                Browse.Logger.i("LEVEL_DOWN");
                 break;
 
             case CallbackMsg.MOVE_TO_ORIGINAL_PLACE_FROM_BOTTOM:
@@ -672,9 +702,9 @@ public class UserViewWrapper extends FrameLayout {
                         } else {
                             if (Math.abs(dy) > callbackThreshold) {
                                 if (!isGoUpThresholdAchieved) {
-                                    if (goUpThresholdAchievedCallback != null) {
+                                    if (onGoUpThresholdAchievedListener != null) {
                                         // Firstly notify once through static variables.
-                                        goUpThresholdAchievedCallback.goUpThresholdAchievedCallback(userBackgroundView, userForegroundView);
+                                        onGoUpThresholdAchievedListener.onThresholdAchieved(userBackgroundView, userForegroundView);
                                     }
 
                                     // Secondly notify rest of wrappers.
@@ -685,13 +715,13 @@ public class UserViewWrapper extends FrameLayout {
                                 }
                             } else {
                                 // Notify listener about go up progress.
-                                if (goUpProgressListener != null) {
-                                    goUpProgressListener.goUpProgress((float) Math.abs(dy) / goUpThreshold);
+                                if (onMoveUpProgressListener != null) {
+                                    onMoveUpProgressListener.moveUpProgress((float) Math.abs(dy) / goUpThreshold);
                                 }
 
-                                if (goUpThresholdAchievedCallback != null) {
+                                if (onGoUpThresholdAchievedListener != null) {
                                     // Firstly notify once through static variables.
-                                    goUpThresholdAchievedCallback.goUpThresholdCancelCallback(userBackgroundView, userForegroundView);
+                                    onGoUpThresholdAchievedListener.onThresholdCancel(userBackgroundView, userForegroundView);
                                 }
 
                                 countDownTimerDuringUpMove.cancel();
@@ -705,9 +735,9 @@ public class UserViewWrapper extends FrameLayout {
                         } else {
                             if (Math.abs(dy) > callbackThreshold) {
                                 if (!isGoDownThresholdAchieved) {
-                                    if (goDownThresholdAchievedCallback != null) {
+                                    if (onGoDownThresholdAchievedListener != null) {
                                         // Firstly notify once through static variables.
-                                        goDownThresholdAchievedCallback.goDownThresholdAchievedCallback(userBackgroundView, userForegroundView);
+                                        onGoDownThresholdAchievedListener.onThresholdAchieved(userBackgroundView, userForegroundView);
                                     }
 
                                     // Secondly notify rest of wrappers.
@@ -718,13 +748,13 @@ public class UserViewWrapper extends FrameLayout {
                                 }
                             } else {
                                 // Notify listener about go down progress.
-                                if (goDownProgressListener != null) {
-                                    goDownProgressListener.goDownProgress((float) Math.abs(dy) / goUpThreshold);
+                                if (onMoveDownProgressListener != null) {
+                                    onMoveDownProgressListener.moveDownProgress((float) Math.abs(dy) / goUpThreshold);
                                 }
 
-                                if (goDownThresholdAchievedCallback != null) {
+                                if (onGoDownThresholdAchievedListener != null) {
                                     // Firstly notify once through static variables.
-                                    goDownThresholdAchievedCallback.goDownThresholdCancelCallback(userBackgroundView, userForegroundView);
+                                    onGoDownThresholdAchievedListener.onThresholdCancel(userBackgroundView, userForegroundView);
                                 }
 
                                 countDownTimerDuringDownMove.cancel();
@@ -757,16 +787,23 @@ public class UserViewWrapper extends FrameLayout {
                             @Override
                             public void onAnimationEnd(Animator animator) {
                                 super.onAnimationEnd(animator);
+
+                                // In this place, view is outside the screen.
+                                // Here we can prepare changing data on the views.
+                                if (onViewsAreAtTheBottomOfTheScreenListener != null) {
+                                    onViewsAreAtTheBottomOfTheScreenListener.onViewsAreAtTheBottomOfTheScreen(wrapperUserType);
+                                }
+
                                 sendMsgToRestOfWrappers(CallbackMsg.MOVE_TO_ORIGINAL_PLACE_FROM_BOTTOM, true);
                             }
                         }, -1500).start();
 
                         sendMsgToRestOfWrappers(CallbackMsg.LEVEL_UP, false);
 
-                        if (callbackMoveUpClassListener != null) {
-                            // Firstly notify once through static variables.
-                            callbackMoveUpClassListener.callbackUp(userBackgroundView, userForegroundView);
+                        if (onLevelUpListenerClassListener != null) {
+                            onLevelUpListenerClassListener.onLevelUp(userBackgroundView, userForegroundView);
                         }
+
 
                     } else if (isGoDownThresholdAchieved) {
 
@@ -775,15 +812,21 @@ public class UserViewWrapper extends FrameLayout {
                             @Override
                             public void onAnimationEnd(Animator animator) {
                                 super.onAnimationEnd(animator);
+
+                                // In this place, view is outside the screen.
+                                // Here we can prepare changing data on the views.
+                                if (onViewsAreAtTheTopOfTheScreenListener != null) {
+                                    onViewsAreAtTheTopOfTheScreenListener.onViewsAreAtTheTopOfTheScreen(wrapperUserType);
+                                }
+
                                 sendMsgToRestOfWrappers(CallbackMsg.MOVE_TO_ORIGINAL_PLACE_FROM_TOP, true);
                             }
                         }, 1500).start();
 
                         sendMsgToRestOfWrappers(CallbackMsg.LEVEL_DOWN, false);
 
-                        if (callbackMoveDownClassListener != null) {
-                            // Firstly notify once through static variables.
-                            callbackMoveDownClassListener.callbackDown(userBackgroundView, userForegroundView);
+                        if (onLevelDownListenerClassListener != null) {
+                            onLevelDownListenerClassListener.onLevelDown(userBackgroundView, userForegroundView);
                         }
 
                     } else {
@@ -1010,34 +1053,34 @@ public class UserViewWrapper extends FrameLayout {
         countDownTimerDuringUpMove = new CountDownTimer(1500, 25) {
             @Override
             public void onTick(long l) {
-                Browse.Logger.i("onTick - up:" + l);
-                if (longHoldDuringUpMoveListener != null) {
-                    longHoldDuringUpMoveListener.onTick(l);
+//                Browse.Logger.i("onTick - up:" + l);
+                if (onHoldDuringMoveUpListener != null) {
+                    onHoldDuringMoveUpListener.onTick(l);
                 }
             }
 
             @Override
             public void onFinish() {
-                Browse.Logger.i("onFinish - up");
-                if (longHoldDuringUpMoveListener != null) {
-                    longHoldDuringUpMoveListener.onFinish();
+//                Browse.Logger.i("onFinish - up");
+                if (onHoldDuringMoveUpListener != null) {
+                    onHoldDuringMoveUpListener.onFinish();
                 }
             }
         };
         countDownTimerDuringDownMove = new CountDownTimer(1500, 25) {
             @Override
             public void onTick(long l) {
-                Browse.Logger.i("onTick - down:" + l);
-                if (longHoldDuringDownMoveListener != null) {
-                    longHoldDuringDownMoveListener.onTick(l);
+//                Browse.Logger.i("onTick - down:" + l);
+                if (onHoldDuringMoveDownListener != null) {
+                    onHoldDuringMoveDownListener.onTick(l);
                 }
             }
 
             @Override
             public void onFinish() {
-                Browse.Logger.i("onFinish - down");
-                if (longHoldDuringDownMoveListener != null) {
-                    longHoldDuringDownMoveListener.onFinish();
+//                Browse.Logger.i("onFinish - down");
+                if (onHoldDuringMoveDownListener != null) {
+                    onHoldDuringMoveDownListener.onFinish();
                 }
             }
         };

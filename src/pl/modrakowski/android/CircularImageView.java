@@ -51,7 +51,7 @@ public class CircularImageView extends ImageView {
         dashedLinePaint.setPathEffect(new DashPathEffect(new float[]{12, 3}, 0));
 
         darkBackgroundPaint2 = new Paint(Paint.ANTI_ALIAS_FLAG);
-        darkBackgroundPaint2.setColor(Color.parseColor("#BCBCBC"));
+        darkBackgroundPaint2.setColor(context.getResources().getColor(R.color.light_gray_3));
         darkBackgroundPaint2.setStyle(Paint.Style.FILL);
     }
 
@@ -62,7 +62,7 @@ public class CircularImageView extends ImageView {
         paint.setAntiAlias(true);
         paint.setShader(shader);
         int circlePoint = getWidth() / 2;
-        //canvas.drawCircle(circlePoint, circlePoint, circlePoint - 4, darkBackgroundPaint2);
+        canvas.drawCircle(circlePoint, circlePoint, circlePoint - 5, darkBackgroundPaint2);
         canvas.drawCircle(circlePoint, circlePoint, circlePoint - 8, darkBackgroundPaint);
         canvas.drawCircle(circlePoint, circlePoint, circlePoint - 13, dashedLinePaint);
         canvas.drawCircle(circlePoint, circlePoint, circlePoint - 18, paint);

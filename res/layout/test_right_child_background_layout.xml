@@ -6,9 +6,10 @@
              android:layout_height="match_parent">
 
     <pl.modrakowski.android.CustomFontTextView
+            android:id="@+id/right_back"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:text="Right Child Background Layout"
+            android:text="@string/mary_ure_desc"
             android:textColor="@android:color/white"
             android:textSize="@dimen/background_text_size"
             android:gravity="center"

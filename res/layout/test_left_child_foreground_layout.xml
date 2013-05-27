@@ -19,7 +19,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
 
-            android:text="Jacek"
+            android:text="Clint"
             android:textColor="@color/gray"
             android:textSize="@dimen/child_foreground_text_size"
             android:gravity="center"
@@ -33,13 +33,13 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
 
-            android:text="Modrakowski"
+            android:text="Eastwood"
             android:textColor="@color/gray"
             android:textSize="@dimen/child_foreground_text_size"
             android:gravity="center"
 
             custom:customFont="Roboto-Thin.ttf"
-            android:layout_toRightOf="@+id/circular_imageview"
+            android:layout_toRightOf="@+id/circular_imageview_left"
             android:layout_centerVertical="true"/>
 
     <pl.modrakowski.android.CustomFontTextView
@@ -47,7 +47,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
 
-            android:text="Android Developer, @Implix"
+            android:text="Actor, @USA"
             android:textColor="@color/gray"
             android:textSize="@dimen/background_text_size"
             android:gravity="center"
@@ -57,12 +57,12 @@
             android:layout_below="@+id/test_left_last_name"/>
 
     <pl.modrakowski.android.CircularImageView
-            android:id="@+id/circular_imageview"
-            android:layout_width="100dip"
-            android:layout_height="100dip"
+            android:id="@+id/circular_imageview_left"
+            android:layout_width="115dip"
+            android:layout_height="115dip"
             android:layout_gravity="center"
-            android:src="@drawable/jacek"
-            android:scaleType="centerInside"
+            android:src="@drawable/clinteastwood"
+            android:scaleType="center"
             android:layout_alignParentLeft="true"
             android:layout_centerVertical="true"
 

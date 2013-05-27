@@ -7,13 +7,13 @@
               android:orientation="vertical">
 
     <pl.modrakowski.android.CustomFontTextView
+            android:id="@+id/left_back"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Left Child Background Layout"
+            android:layout_height="match_parent"
+            android:text="@string/clint_desc"
             android:textColor="@android:color/white"
             android:textSize="@dimen/background_text_size"
             android:gravity="center"
-
             custom:customFont="Roboto-Condensed.ttf"/>
 
     <Button
@@ -21,7 +21,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Button"
-            android:textColor="@android:color/white"/>
+            android:textColor="@android:color/white"
+            android:visibility="gone"/>
 
 
 </LinearLayout>

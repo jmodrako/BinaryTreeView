@@ -1,7 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">VemmaBrowseTest</string>
+    <string name="app_name">BinaryTree</string>
     <string name="foreground_view_tag">foreground_tag</string>
     <string name="background_view_tag">background_tag</string>
+
+    <string name="mary_ure_desc">Eileen Mary Ure (18 February 1933 – 3 April 1975) was a Scottish stage and film actress. Born in Glasgow, Ure was the daughter of civil engineer Colin McGregor Ure and
+        Edith Swinburne.
+    </string>
+    <string name="mary_role">Actress, @Scotland</string>
+
+    <string name="clint_desc">Clinton Clint Eastwood, Jr. (born May 31, 1930) is an American film actor, director, producer, composer, pianist, and politician. Eastwood first came to prominence as a
+        supporting cast member in the TV series Rawhide (1959–1966).
+    </string>
+    <string name="clint_role">Actor, @USA</string>
+
+    <string name="jacek_desc">Jacek Modrakowski, aktualnie student drugiego stopnia Informatyki Stosowanej wydziału Fizyki Technicznej i Matematyki Stosowanej na Politechnice Gdańskiej. Od 2012 roku
+        Android Developer w gdańskiej firmie Implix. Wytwarzaniem oprogramowania na platformę Android zajmuje się od 2011 roku.
+    </string>
+    <string name="jacek_role">Android Developer, @Implix</string>
+
+    <string name="anton_desc">Anton Diffring (20 October 1918 – 20 May 1989)[1] was a German character actor known for his portrayal of German officers and aristocrats in many film and TV appearances.
+    </string>
+    <string name="anton_role">Actor, @Germany</string>
+
+    <string name="daren_desc">Derren Nesbitt (born Derren Michael Horwitz 19 June 1935) is an English actor. Possibly his best known role was as SS Major von Hapen in Where Eagles Dare.
+    </string>
+    <string name="daren_role">Actor, @UK</string>
+
+    <string name="morgan_desc">With an authoritative voice and calm demeanor, this ever popular American actor has grown into one of the most respected figures in modern US cinema. Born in June 1937 in Memphis, Tennessee, the young Freeman attended Los Angeles Community College before serving several years in the US Air Force as a mechanic between 1955 and 1959.
+    </string>
+    <string name="morgan_role">Actor, @USA</string>
+
+    <string name="haris_desc">A genuine star of cinema on screen and a fiery hell raiser off screen, Richard St John Harris was born on October 1, 1930 in Limerick, Ireland, to a farming family.
+    </string>
+    <string name="haris_role">Actor, @Ireland</string>
 
 </resources>

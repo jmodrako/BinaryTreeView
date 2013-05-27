@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="BinaryTheme">
+    <style name="BinaryTheme" parent="android:Theme.Holo.Light.DarkActionBar">
         <item name="android:windowBackground">@null</item>
     </style>
 </resources>

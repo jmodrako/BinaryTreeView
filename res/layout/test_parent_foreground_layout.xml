@@ -8,53 +8,53 @@
                 android:paddingTop="8dip">
 
     <pl.modrakowski.android.CustomFontTextView
-            android:id="@+id/test_left_first_name"
+            android:id="@+id/test_parent_first_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
 
-            android:text="Maciej"
+            android:text="Jacek"
             android:textColor="@color/gray"
             android:textSize="@dimen/child_foreground_text_size"
             android:gravity="center"
 
             custom:customFont="Roboto-Thin.ttf"
             android:layout_centerInParent="true"
-            android:layout_below="@+id/circular_imageview"/>
+            android:layout_below="@+id/circular_imageview_parent"/>
 
     <pl.modrakowski.android.CustomFontTextView
-            android:id="@+id/test_left_last_name"
+            android:id="@+id/test_parent_last_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
 
-            android:text="Kowalski"
+            android:text="Modrakowski"
             android:textColor="@color/gray"
             android:textSize="@dimen/child_foreground_text_size"
             android:gravity="center"
 
             custom:customFont="Roboto-Thin.ttf"
             android:layout_centerHorizontal="true"
-            android:layout_below="@+id/test_left_first_name"/>
+            android:layout_below="@+id/test_parent_first_name"/>
 
     <pl.modrakowski.android.CustomFontTextView
-            android:id="@+id/test_left_stan_name"
+            android:id="@+id/test_parent_stan_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
 
-            android:text="Kierownik, @Implix"
+            android:text="Android Developer, @Implix"
             android:textColor="@color/gray"
             android:textSize="@dimen/background_text_size"
             android:gravity="center"
 
             custom:customFont="Roboto-Condensed.ttf"
             android:layout_centerHorizontal="true"
-            android:layout_below="@+id/test_left_last_name"/>
+            android:layout_below="@+id/test_parent_last_name"/>
 
     <pl.modrakowski.android.CircularImageView
-            android:id="@+id/circular_imageview"
+            android:id="@+id/circular_imageview_parent"
             android:layout_width="140dip"
             android:layout_height="140dip"
-            android:src="@drawable/kieras"
-
+            android:src="@drawable/jacek"
+            android:scaleType="centerInside"
             android:layout_centerHorizontal="true"
             android:layout_alignParentTop="true"
             android:layout_marginTop="12dp"/>
