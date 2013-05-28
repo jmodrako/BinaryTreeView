@@ -8,6 +8,7 @@ Usage
 ==============
 
 To use these classes, just copy following classes to your project:
+
 1. UserViewWrapper
 2. UserBackgroundView 
 3. UserForegroundView
